@@ -1,9 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { GenericReadabilityAdapter } from './generic-readability'
 import { selectAdapter, type SourceAdapter } from './source-adapter'
 import { RESERVED_ASSET_PREFIX } from '../constants'
-
-const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x01, 0x02, 0x03])
 
 function buildDocument(innerHtml: string, title = 'Sample article'): Document {
   const document = window.document.implementation.createHTMLDocument(title)
@@ -15,10 +13,6 @@ function articleHtml(imageTag = ''): string {
   const paragraph = 'This is a sufficiently long sentence about reading and capturing content. '.repeat(6)
   return `<article><h1>Sample article</h1><p>${paragraph}</p>${imageTag}</article>`
 }
-
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
 
 describe('GenericReadabilityAdapter', () => {
   it('recognizes ordinary http(s) article pages', () => {
@@ -52,29 +46,23 @@ describe('GenericReadabilityAdapter', () => {
     expect(result.error?.code).toBe('EXTRACTION_FAILED')
   })
 
-  it('captures images and rewrites them to package-local asset keys', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({
-      ok: true,
-      arrayBuffer: async () => PNG.buffer.slice(0),
-    })))
-
+  it('resolves images and rewrites them to package-local asset keys', async () => {
     const adapter = new GenericReadabilityAdapter()
     const result = await adapter.capture({
       document: buildDocument(articleHtml('<img src="/hero.png" alt="Hero">')),
       url: 'https://example.com/a',
     })
 
-    expect(result.assets).toHaveLength(1)
-    expect(result.assets[0]?.mimeType).toBe('image/png')
+    expect(result.images).toHaveLength(1)
+    expect(result.images[0]).toMatchObject({
+      assetKey: 'asset-1',
+      url: 'https://example.com/hero.png',
+      altText: 'Hero',
+    })
     expect(result.artifact.html).toContain(`${RESERVED_ASSET_PREFIX}asset-1`)
   })
 
   it('keeps images wrapped in negative-class containers such as share/media wrappers', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({
-      ok: true,
-      arrayBuffer: async () => PNG.buffer.slice(0),
-    })))
-
     const paragraph = 'This is a sufficiently long sentence about reading and capturing content. '.repeat(6)
     const wrapped = `<article>
       <h1>Sample article</h1>
@@ -94,22 +82,20 @@ describe('GenericReadabilityAdapter', () => {
       url: 'https://example.com/a',
     })
 
-    expect(result.assets).toHaveLength(1)
+    expect(result.images).toHaveLength(1)
     expect(result.artifact.html).toContain(`${RESERVED_ASSET_PREFIX}asset-1`)
   })
 
-  it('still succeeds with a warning when assets cannot be captured', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false })))
-
+  it('drops image sources it cannot resolve and reports a warning', async () => {
     const adapter = new GenericReadabilityAdapter()
     const result = await adapter.capture({
-      document: buildDocument(articleHtml('<img src="/missing.png" alt="Missing">')),
+      document: buildDocument(articleHtml('<img src="blob:https://example.com/xyz" alt="Blob">')),
       url: 'https://example.com/a',
     })
 
-    expect(result.assets).toHaveLength(0)
+    expect(result.images).toHaveLength(0)
     expect(result.status).toBe('SUCCESS_WITH_WARNINGS')
-    expect(result.warnings.some(warning => warning.code === 'ASSET_MISSING')).toBe(true)
+    expect(result.warnings.some(warning => warning.code === 'ASSET_UNRESOLVED')).toBe(true)
   })
 })
 

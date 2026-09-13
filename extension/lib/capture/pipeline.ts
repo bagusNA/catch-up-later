@@ -1,37 +1,31 @@
-import { buildCapturePackage, toBase64 } from './package'
 import { defaultAdapters } from './adapters'
 import { selectAdapter, type SourceAdapter } from './adapters/source-adapter'
-import type {
-  ArtifactType,
-  CaptureError,
-  CaptureWarning,
-  SourceInfo,
-} from './types'
+import type { AdapterCaptureResult, CaptureError } from './types'
 
-export interface CapturePipelineSuccess {
+export interface CapturePageSuccess {
   ok: true
-  packageBase64: string
-  source: SourceInfo
-  warnings: CaptureWarning[]
-  artifactType: ArtifactType
-  title: string
+  page: AdapterCaptureResult
 }
 
-export interface CapturePipelineFailure {
+export interface CapturePageFailure {
   ok: false
   error: CaptureError
 }
 
-export type CapturePipelineResult = CapturePipelineSuccess | CapturePipelineFailure
+export type CapturePageResult = CapturePageSuccess | CapturePageFailure
 
 /**
- * Runs adapter selection, extraction, sanitization, and packaging against a
- * document. This is the single entry point executed inside the page context.
+ * Runs adapter selection, extraction, sanitization, and asset rewriting in the
+ * page context.
+ *
+ * This stops short of downloading asset bytes or building the archive: the
+ * background worker does that with host permissions, which is not available to
+ * page scripts. Everything returned here is JSON-serializable.
  */
-export async function capturePage(
+export async function extractPage(
   document: Document = globalThis.document,
   adapters: readonly SourceAdapter[] = defaultAdapters(),
-): Promise<CapturePipelineResult> {
+): Promise<CapturePageResult> {
   const url = document.location?.href ?? ''
   if (!url) {
     return failure('UNSUPPORTED_SOURCE', 'The current page has no address.')
@@ -54,18 +48,10 @@ export async function capturePage(
     return { ok: false, error: result.error ?? error('EXTRACTION_FAILED', 'The page could not be captured.') }
   }
 
-  const bytes = buildCapturePackage(result)
-  return {
-    ok: true,
-    packageBase64: toBase64(bytes),
-    source: result.source,
-    warnings: result.warnings,
-    artifactType: result.artifact.type,
-    title: result.artifact.title,
-  }
+  return { ok: true, page: result }
 }
 
-function failure(code: CaptureError['code'], message: string): CapturePipelineFailure {
+function failure(code: CaptureError['code'], message: string): CapturePageFailure {
   return { ok: false, error: error(code, message) }
 }
 

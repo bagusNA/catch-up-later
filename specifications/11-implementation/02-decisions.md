@@ -226,3 +226,24 @@ when background processing is introduced.
 **Consequences:** Failures are recorded as `FAILED` jobs without rolling back
 the job row, using `@Transactional(noRollbackFor = [ApiException::class])`.
 A future slice may move processing to a worker without touching the API shape.
+
+## DEC-018 — Cross-origin asset download happens in the background worker
+
+**Context:** Article images are frequently served from a CDN on a different
+origin than the page. In MV3, content-script `fetch` is subject to the page's
+CORS policy, so cross-origin images were dropped and captured articles rendered
+without them.
+
+**Decision:** The injected page script only extracts content, assigns
+package-local asset keys, and rewrites image `src` values; it never downloads
+bytes. The background service worker downloads the referenced images (sending
+cookies where needed) and builds the ZIP archive. The extension declares
+`<all_urls>` as an **optional** host permission and requests it from the popup
+on the first save, which is a user gesture.
+
+**Consequences:** Cross-origin images are captured when the user grants the
+permission. If it is declined, same-origin images still work and the rest
+degrade to `ASSET_MISSING` warnings, so capture never fails because of a
+permission choice. The extension does not hold broad host permissions at rest,
+and `fflate` plus the package builder move from the page bundle to the service
+worker.

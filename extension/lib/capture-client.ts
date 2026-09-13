@@ -1,7 +1,8 @@
 import { browser } from 'wxt/browser'
 import { authenticatedFetch } from './auth'
-import { fromBase64 } from './capture/package'
-import type { CapturePipelineResult } from './capture/pipeline'
+import { fetchImageAssets } from './capture/image-assets'
+import { buildCapturePackage } from './capture/package'
+import type { CapturePageResult } from './capture/pipeline'
 import type { CaptureWarning } from './capture/types'
 
 export interface CaptureSummary {
@@ -26,8 +27,9 @@ const POLL_INTERVAL_MS = 1_000
 /**
  * Captures the active tab and uploads the resulting package.
  *
- * Runs entirely in the background service worker: the page only ever returns
- * an inert package, and tokens never enter page content.
+ * The page script only extracts and rewrites; this worker downloads the asset
+ * bytes (using host permissions so cross-origin images work), builds the
+ * archive, and uploads it. Tokens never enter page content.
  */
 export async function captureActiveTab(): Promise<CaptureSummary> {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
@@ -39,27 +41,36 @@ export async function captureActiveTab(): Promise<CaptureSummary> {
     target: { tabId: tab.id },
     files: ['/capture-extract.js'],
   })
-  const result = injection[0]?.result as CapturePipelineResult | undefined
-  if (!result) {
-    throw new Error('The page did not return a capture package.')
+  const extracted = injection[0]?.result as CapturePageResult | undefined
+  if (!extracted) {
+    throw new Error('The page did not return a capture result.')
   }
-  if (!result.ok) {
+  if (!extracted.ok) {
     return {
       captureId: null,
       status: 'FAILED',
       contentItemId: null,
       warnings: [],
-      error: { code: result.error.code, message: result.error.message },
+      error: { code: extracted.error.code, message: extracted.error.message },
     }
   }
 
-  return uploadPackage(result.packageBase64)
+  const { page } = extracted
+  const { assets, warnings } = await fetchImageAssets(page.images)
+  const archive = buildCapturePackage({
+    source: page.source,
+    artifact: page.artifact,
+    metadata: page.metadata,
+    assets,
+    warnings: [...page.warnings, ...warnings],
+  })
+
+  return uploadPackage(archive)
 }
 
-async function uploadPackage(packageBase64: string): Promise<CaptureSummary> {
-  const bytes = fromBase64(packageBase64)
+async function uploadPackage(archive: Uint8Array): Promise<CaptureSummary> {
   const form = new FormData()
-  form.append('package', new Blob([bytes as unknown as BlobPart], { type: 'application/zip' }), 'capture.zip')
+  form.append('package', new Blob([archive as unknown as BlobPart], { type: 'application/zip' }), 'capture.zip')
 
   const response = await authenticatedFetch('/api/v1/captures', {
     method: 'POST',

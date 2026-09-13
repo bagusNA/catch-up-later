@@ -71,14 +71,37 @@ export interface CapturedAsset {
   checksum?: string
 }
 
+/**
+ * An image referenced by the extracted article. The page assigns a stable
+ * package-local key and rewrites the HTML; the background worker downloads the
+ * bytes later (with host permissions, so cross-origin images are not blocked
+ * by CORS).
+ */
+export interface ImageReference {
+  assetKey: string
+  url: string
+  altText?: string
+  width?: number
+  height?: number
+}
+
 export interface AdapterCaptureResult {
   status: AdapterStatus
   source: SourceInfo
   artifact: ArtifactPayload
   metadata: ExtractedMetadata
-  assets: CapturedAsset[]
+  images: ImageReference[]
   warnings: CaptureWarning[]
   error?: CaptureError
+}
+
+/** Input to the package builder: the page result plus downloaded asset bytes. */
+export interface CapturePackageInput {
+  source: SourceInfo
+  artifact: ArtifactPayload
+  metadata: ExtractedMetadata
+  assets: CapturedAsset[]
+  warnings: CaptureWarning[]
 }
 
 export interface CaptureManifestAsset {

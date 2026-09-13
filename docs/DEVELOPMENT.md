@@ -106,13 +106,17 @@ pnpm compile      # type-check
 pnpm test         # adapter and packaging fixture tests
 ```
 
-The extension only captures on explicit user action and requests `activeTab` +
-`scripting` rather than broad host permissions. Open the extension's options
-page, enter the backend URL and your account credentials, and connect. Tokens
-are stored with `browser.storage.local` and refreshed by the background worker;
-the popup never talks to the backend directly. On a supported article, click
-**Save this page** in the popup; the package is built in the page context and
-uploaded by the service worker.
+The extension only captures on explicit user action. It requests `activeTab`,
+`scripting`, and `tabs` rather than broad host permissions at rest. On the
+first save it asks for the optional `<all_urls>` host permission so the
+background worker can download cross-origin article images; if you decline,
+same-origin images still work and the rest become warnings. Open the
+extension's options page, enter the backend URL and your account credentials,
+and connect. Tokens are stored with `browser.storage.local` and refreshed by the
+background worker; the popup never talks to the backend directly. On a supported
+article, click **Save this page** in the popup; the page context extracts and
+rewrites image references, then the service worker downloads assets, builds the
+package, and uploads it.
 
 ## Environment variables
 

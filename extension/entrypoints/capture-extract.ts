@@ -1,11 +1,12 @@
 import { defineUnlistedScript } from 'wxt/utils/define-unlisted-script'
-import { capturePage } from '@/lib/capture/pipeline'
+import { extractPage } from '@/lib/capture/pipeline'
 
 /**
  * Page-context capture script.
  *
  * Injected into the active tab with `browser.scripting.executeScript` after the
- * user clicks Save. It runs in the isolated world, reads the live DOM, captures
- * assets, and returns a base64-encoded capture package to the service worker.
+ * user clicks Save. It runs in the isolated world, reads the live DOM, rewrites
+ * image references to package-local keys, and returns a JSON-serializable page
+ * result. The service worker downloads asset bytes and builds the archive.
  */
-export default defineUnlistedScript(() => capturePage())
+export default defineUnlistedScript(() => extractPage())

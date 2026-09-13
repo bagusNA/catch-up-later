@@ -1,11 +1,10 @@
 import { strFromU8, unzipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'
 import { buildCapturePackage, fromBase64, toBase64 } from './package'
-import type { AdapterCaptureResult } from './types'
+import type { CapturePackageInput } from './types'
 
-function result(): AdapterCaptureResult {
+function input(): CapturePackageInput {
   return {
-    status: 'SUCCESS',
     source: {
       url: 'https://example.com/a',
       adapterId: 'generic-readability',
@@ -36,7 +35,7 @@ function result(): AdapterCaptureResult {
 
 describe('buildCapturePackage', () => {
   it('produces a schema v1 archive with manifest, content, and assets', () => {
-    const archive = buildCapturePackage(result())
+    const archive = buildCapturePackage(input())
     const entries = unzipSync(archive)
 
     expect(Object.keys(entries).sort()).toEqual(

@@ -1,6 +1,6 @@
 import { strToU8, zipSync } from 'fflate'
 import { SCHEMA_VERSION } from './constants'
-import type { AdapterCaptureResult, CaptureManifest, CaptureManifestAsset, CaptureManifestMetadata } from './types'
+import type { CaptureManifest, CaptureManifestAsset, CaptureManifestMetadata, CapturePackageInput } from './types'
 
 /**
  * Builds a schema v1 capture package ZIP.
@@ -13,37 +13,37 @@ import type { AdapterCaptureResult, CaptureManifest, CaptureManifestAsset, Captu
  * assets/{assetKey}
  * ```
  */
-export function buildCapturePackage(result: AdapterCaptureResult): Uint8Array {
+export function buildCapturePackage(input: CapturePackageInput): Uint8Array {
   const manifest: CaptureManifest = {
     schemaVersion: SCHEMA_VERSION,
-    source: result.source,
+    source: input.source,
     artifact: {
-      type: result.artifact.type,
-      title: result.artifact.title,
-      language: result.artifact.language,
-      readingTimeMinutes: result.artifact.readingTimeMinutes,
+      type: input.artifact.type,
+      title: input.artifact.title,
+      language: input.artifact.language,
+      readingTimeMinutes: input.artifact.readingTimeMinutes,
     },
-    metadata: toManifestMetadata(result.metadata),
-    assets: result.assets.map(toManifestAsset),
+    metadata: toManifestMetadata(input.metadata),
+    assets: input.assets.map(toManifestAsset),
     capture: {
       capturedAt: new Date().toISOString(),
-      warnings: result.warnings,
+      warnings: input.warnings,
     },
   }
 
   const files: Record<string, Uint8Array> = {
     'manifest.json': strToU8(JSON.stringify(manifest)),
-    'content.html': strToU8(result.artifact.html),
-    'content.txt': strToU8(result.artifact.text),
+    'content.html': strToU8(input.artifact.html),
+    'content.txt': strToU8(input.artifact.text),
   }
-  for (const asset of result.assets) {
+  for (const asset of input.assets) {
     files[`assets/${asset.assetKey}`] = asset.bytes
   }
 
   return zipSync(files, { level: 6 })
 }
 
-function toManifestMetadata(metadata: AdapterCaptureResult['metadata']): CaptureManifestMetadata {
+function toManifestMetadata(metadata: CapturePackageInput['metadata']): CaptureManifestMetadata {
   return {
     author: metadata.author,
     description: metadata.description,
@@ -53,7 +53,7 @@ function toManifestMetadata(metadata: AdapterCaptureResult['metadata']): Capture
   }
 }
 
-function toManifestAsset(asset: AdapterCaptureResult['assets'][number]): CaptureManifestAsset {
+function toManifestAsset(asset: CapturePackageInput['assets'][number]): CaptureManifestAsset {
   return {
     assetKey: asset.assetKey,
     mimeType: asset.mimeType,

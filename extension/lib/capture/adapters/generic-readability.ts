@@ -1,5 +1,5 @@
 import { Readability } from '@mozilla/readability'
-import { collectAndRewriteAssets } from '../assets'
+import { collectImageReferences } from '../assets'
 import { sanitizeArticleHtml } from '../sanitize'
 import { readingTimeMinutes } from '../reading-time'
 import type { AdapterCaptureResult, CaptureWarning, ExtractedMetadata } from '../types'
@@ -51,7 +51,7 @@ export class GenericReadabilityAdapter implements SourceAdapter {
       return this.failure(source, 'EXTRACTION_FAILED', 'Readability could not find article content on this page.')
     }
 
-    const collected = await collectAndRewriteAssets(parsed.content, {
+    const collected = collectImageReferences(parsed.content, {
       baseUrl: context.url,
       leadImageUrl: metaContent(document, 'og:image') ?? undefined,
     })
@@ -67,7 +67,7 @@ export class GenericReadabilityAdapter implements SourceAdapter {
       description: nonBlank(parsed.excerpt) ?? metaContent(document, 'description'),
       siteName: siteName ?? undefined,
       publishedAt: toIsoDate(nonBlank(parsed.publishedTime) ?? metaContent(document, 'article:published_time')),
-      imageAssetKey: collected.imageAssetKey,
+      imageAssetKey: collected.leadImageAssetKey,
     }
 
     return {
@@ -82,7 +82,7 @@ export class GenericReadabilityAdapter implements SourceAdapter {
         readingTimeMinutes: readingTimeMinutes(text),
       },
       metadata,
-      assets: collected.assets,
+      images: collected.references,
       warnings,
     }
   }
@@ -97,7 +97,7 @@ export class GenericReadabilityAdapter implements SourceAdapter {
       source,
       artifact: { type: 'ARTICLE_READER', title: '', html: '', text: '' },
       metadata: {},
-      assets: [],
+      images: [],
       warnings: [],
       error: { code, message, retryable: false },
     }
