@@ -21,10 +21,28 @@ spring:
     locations: classpath:db/migration
   jackson:
     default-property-inclusion: non_null
+  servlet:
+    multipart:
+      # Uploads are bounded here as a first line of defense; the package reader
+      # enforces stricter, per-entry limits while streaming.
+      max-file-size: 52MB
+      max-request-size: 55MB
 
 # Application-level security settings. These are validated at startup and the
 # application fails fast if they are invalid.
 app:
+  storage:
+    artifacts-dir: ./data/artifacts
+    staging-dir: ./data/staging
+  capture:
+    supported-schema-versions: 1
+    max-package-bytes: 52428800
+    max-manifest-bytes: 2097152
+    max-html-bytes: 5242880
+    max-text-bytes: 5242880
+    max-asset-count: 100
+    max-asset-bytes: 10485760
+    max-total-asset-bytes: 52428800
   security:
     session:
       cookie-name: CUL_SESSION

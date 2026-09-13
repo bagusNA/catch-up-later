@@ -13,15 +13,21 @@
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "compile": "vue-tsc --noEmit",
+    "test": "vitest run",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "dompurify": "^3.4.15",
+    "fflate": "^0.8.3",
     "vue": "^3.5.29"
   },
   "devDependencies": {
     "@wxt-dev/module-vue": "^1.0.3",
+    "jsdom": "^30.0.1",
     "typescript": "^5.9.3",
     "vite": "^8.1.5",
+    "vitest": "^5.0.0",
     "vue-tsc": "^3.2.5",
     "web-ext": "^10.5.0",
     "wxt": "^0.21.3"

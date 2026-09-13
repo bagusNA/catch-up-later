@@ -196,3 +196,52 @@ password revokes every token for the account.
 **Consequences:** Tokens are revocable with no signing-key management, and a
 leaked database does not yield usable credentials. Each bearer request performs
 one indexed lookup.
+
+## DEC-016 — Capture package v1 layout and reserved asset host
+
+**Context:** DEC-004 chose a ZIP package but left the concrete entry layout and
+how HTML references local assets undefined.
+
+**Decision:** A schema v1 package is a ZIP with `manifest.json`, `content.html`,
+`content.txt`, and `assets/{assetKey}`. Article images are rewritten to the
+reserved, never-resolvable host `https://assets.cul.invalid/{assetKey}`. The
+backend sanitizer preserves only image sources on that host and the reader
+rewrites them to `/api/v1/artifacts/{artifactId}/assets/{assetKey}`. The full
+schema is documented in `specifications/03-capture/04-capture-package-schema-v1.md`.
+
+**Consequences:** External image URLs are stripped on ingest, so stored
+artifacts never depend on the source site. The reserved host is a sentinel, not
+a fetch target, which keeps the backend free of SSRF-prone asset fetching.
+
+## DEC-017 — Capture processing is synchronous in the MVP
+
+**Context:** The capture lifecycle allows asynchronous processing, and the API
+exposes `GET /captures/{captureId}` for polling.
+
+**Decision:** `POST /api/v1/captures` reads, validates, sanitizes, and stores
+the package synchronously and returns the final status. The capture job is still
+persisted, and the status endpoint remains, so the contract does not change
+when background processing is introduced.
+
+**Consequences:** Failures are recorded as `FAILED` jobs without rolling back
+the job row, using `@Transactional(noRollbackFor = [ApiException::class])`.
+A future slice may move processing to a worker without touching the API shape.
+
+## DEC-018 — Cross-origin asset download happens in the background worker
+
+**Context:** Article images are frequently served from a CDN on a different
+origin than the page. In MV3, content-script `fetch` is subject to the page's
+CORS policy, so cross-origin images were dropped and captured articles rendered
+without them.
+
+**Decision:** The injected page script only extracts content, assigns
+package-local asset keys, and rewrites image `src` values; it never downloads
+bytes. The background service worker downloads the referenced images (sending
+cookies where needed) and builds the ZIP archive. The extension declares
+`<all_urls>` as a **host permission**, granted at install time.
+
+**Consequences:** Cross-origin images are captured without a per-save prompt.
+The extension does not browse or read pages at rest — capture is still only
+triggered by an explicit user action — but the manifest does ask for broad host
+access up front. `fflate` plus the package builder move from the page bundle to
+the service worker.

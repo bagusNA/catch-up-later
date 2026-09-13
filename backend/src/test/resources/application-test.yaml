@@ -7,3 +7,8 @@ app:
       # Public registration is disabled by default in production; the
       # registration tests opt in explicitly.
       enabled: true
+  storage:
+    # Artifacts are written under the build directory so test runs never touch
+    # the development data directory.
+    artifacts-dir: build/test-data/artifacts
+    staging-dir: build/test-data/staging

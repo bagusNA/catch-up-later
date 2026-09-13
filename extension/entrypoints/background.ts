@@ -7,6 +7,7 @@ import {
   type ExtensionMessage,
   type MessageResult
 } from '@/lib/auth'
+import { captureActiveTab } from '@/lib/capture-client'
 
 /**
  * Background service worker.
@@ -49,6 +50,10 @@ async function handle(message: ExtensionMessage): Promise<MessageResult> {
         return { ok: false, error: `Request failed (${response.status}).` }
       }
       return { ok: true, data: await response.json() }
+    }
+    case 'capture:save': {
+      const capture = await captureActiveTab()
+      return { ok: true, capture }
     }
     default: {
       return { ok: false, error: 'Unsupported message.' }

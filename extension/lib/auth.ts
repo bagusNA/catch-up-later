@@ -1,4 +1,5 @@
 import { storage } from 'wxt/utils/storage'
+import type { CaptureSummary } from './capture-client'
 
 /**
  * Extension-side authentication.
@@ -39,9 +40,10 @@ export type ExtensionMessage =
   | { type: 'auth:status' }
   | { type: 'auth:logout' }
   | { type: 'api:me' }
+  | { type: 'capture:save' }
 
 export type MessageResult =
-  | { ok: true, connected?: boolean, user?: ExtensionUser | null, backendUrl?: string, data?: unknown }
+  | { ok: true, connected?: boolean, user?: ExtensionUser | null, backendUrl?: string, data?: unknown, capture?: CaptureSummary }
   | { ok: false, error: string }
 
 const settingsItem = storage.defineItem<ExtensionSettings>('local:settings', {

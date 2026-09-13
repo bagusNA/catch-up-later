@@ -14,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.HandlerMethodValidationException
+import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 
 /**
@@ -28,7 +29,7 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(ApiException::class)
     fun handleApiException(exception: ApiException): ResponseEntity<ApiError> =
-        error(exception.status, exception.code, exception.message ?: "Request failed.")
+        error(exception.status, exception.code, exception.message ?: "Request failed.", details = exception.details)
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleMethodArgumentNotValid(exception: MethodArgumentNotValidException): ResponseEntity<ApiError> {
@@ -79,6 +80,10 @@ class GlobalExceptionHandler {
     fun handleMediaTypeNotSupported(exception: HttpMediaTypeNotSupportedException): ResponseEntity<ApiError> =
         error(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_MEDIA_TYPE", "The request content type is not supported.")
 
+    @ExceptionHandler(MaxUploadSizeExceededException::class)
+    fun handleMaxUploadSizeExceeded(exception: MaxUploadSizeExceededException): ResponseEntity<ApiError> =
+        error(HttpStatus.PAYLOAD_TOO_LARGE, "CONTENT_TOO_LARGE", "The uploaded package exceeds the maximum allowed size.")
+
     @ExceptionHandler(Exception::class)
     fun handleUnexpected(exception: Exception, request: HttpServletRequest): ResponseEntity<ApiError> {
         // Log the full detail server-side, but never leak it to the client.
@@ -91,13 +96,18 @@ class GlobalExceptionHandler {
         code: String,
         message: String,
         fieldErrors: List<FieldValidationError> = emptyList(),
+        details: Map<String, Any?> = emptyMap(),
     ): ResponseEntity<ApiError> =
         ResponseEntity.status(status).body(
             ApiError(
                 error = ApiErrorBody(
                     code = code,
                     message = message,
-                    details = if (fieldErrors.isEmpty()) emptyMap() else mapOf("fieldErrors" to fieldErrors),
+                    details = when {
+                        fieldErrors.isNotEmpty() -> mapOf("fieldErrors" to fieldErrors)
+                        details.isNotEmpty() -> details
+                        else -> emptyMap()
+                    },
                     requestId = com.bagusna.catchuplater.core.web.RequestIdFilter.currentId(),
                 ),
             ),
