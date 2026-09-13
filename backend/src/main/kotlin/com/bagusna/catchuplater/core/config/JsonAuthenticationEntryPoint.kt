@@ -25,7 +25,6 @@ class JsonAuthenticationEntryPoint(
             status = HttpStatus.UNAUTHORIZED,
             code = "UNAUTHENTICATED",
             message = "Authentication is required to access this resource.",
-            path = request.requestURI,
         )
     }
 }

@@ -25,7 +25,6 @@ class JsonAccessDeniedHandler(
             status = HttpStatus.FORBIDDEN,
             code = "ACCESS_DENIED",
             message = "You do not have permission to access this resource.",
-            path = request.requestURI,
         )
     }
 }

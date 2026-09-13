@@ -63,8 +63,8 @@ class RegistrationApiTest : IntegrationTestBase() {
                 ),
         )
             .andExpect(status().isConflict)
-            .andExpect(jsonPath("$.code").value("DUPLICATE_EMAIL"))
-            .andExpect(jsonPath("$.message").value("An account with this email already exists."))
+            .andExpect(jsonPath("$.error.code").value("DUPLICATE_EMAIL"))
+            .andExpect(jsonPath("$.error.message").value("An account with this email already exists."))
     }
 
     @Test
@@ -79,7 +79,7 @@ class RegistrationApiTest : IntegrationTestBase() {
                 .content("""{"email":"CASE@example.com","password":"$VALID_PASSWORD"}"""),
         )
             .andExpect(status().isConflict)
-            .andExpect(jsonPath("$.code").value("DUPLICATE_EMAIL"))
+            .andExpect(jsonPath("$.error.code").value("DUPLICATE_EMAIL"))
     }
 
     @Test
@@ -93,8 +93,8 @@ class RegistrationApiTest : IntegrationTestBase() {
                 .content("""{"email":"not-an-email","password":"$VALID_PASSWORD"}"""),
         )
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
-            .andExpect(jsonPath("$.fieldErrors[0].field").value("email"))
+            .andExpect(jsonPath("$.error.code").value("VALIDATION_FAILED"))
+            .andExpect(jsonPath("$.error.details.fieldErrors[0].field").value("email"))
     }
 
     @Test
@@ -108,7 +108,7 @@ class RegistrationApiTest : IntegrationTestBase() {
                 .content("""{"email":"weak@example.com","password":"short"}"""),
         )
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.code").value("WEAK_PASSWORD"))
+            .andExpect(jsonPath("$.error.code").value("WEAK_PASSWORD"))
     }
 
     @Test

@@ -48,8 +48,8 @@ class AuthenticationApiTest : IntegrationTestBase() {
                 .content("""{"email":"bad-password@example.com","password":"definitely-not-the-password"}"""),
         )
             .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"))
-            .andExpect(jsonPath("$.message").value("Invalid email or password."))
+            .andExpect(jsonPath("$.error.code").value("INVALID_CREDENTIALS"))
+            .andExpect(jsonPath("$.error.message").value("Invalid email or password."))
     }
 
     @Test
@@ -63,15 +63,15 @@ class AuthenticationApiTest : IntegrationTestBase() {
                 .content("""{"email":"nobody@example.com","password":"$VALID_PASSWORD"}"""),
         )
             .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"))
-            .andExpect(jsonPath("$.message").value("Invalid email or password."))
+            .andExpect(jsonPath("$.error.code").value("INVALID_CREDENTIALS"))
+            .andExpect(jsonPath("$.error.message").value("Invalid email or password."))
     }
 
     @Test
     fun `protected endpoint requires authentication`() {
         mockMvc.perform(get("/api/auth/me"))
             .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"))
+            .andExpect(jsonPath("$.error.code").value("UNAUTHENTICATED"))
     }
 
     @Test
@@ -85,7 +85,7 @@ class AuthenticationApiTest : IntegrationTestBase() {
                 .content("""{"email":"not-an-email","password":""}"""),
         )
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+            .andExpect(jsonPath("$.error.code").value("VALIDATION_FAILED"))
     }
 
     @Test

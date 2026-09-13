@@ -1,64 +1,39 @@
-# Nuxt Dashboard Template
+# Catch Up Later — Frontend
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
-
-Get started with the Nuxt dashboard template with multiple pages, collapsible sidebar, keyboard shortcuts, light & dark mode, command palette and more, powered by [Nuxt UI](https://ui.nuxt.com).
-
-- [Live demo](https://dashboard-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
-
-<a href="https://dashboard-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/dashboard-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/dashboard-light.png">
-    <img alt="Nuxt Dashboard Template" src="https://ui.nuxt.com/assets/templates/nuxt/dashboard-light.png">
-  </picture>
-</a>
-
-> The dashboard template for Vue is on https://github.com/nuxt-ui-templates/dashboard-vue.
-
-## Quick Start
-
-```bash [Terminal]
-npm create nuxt@latest -- -t ui/dashboard
-```
-
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=dashboard&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fdashboard&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fdashboard-dark.png&demo-url=https%3A%2F%2Fdashboard-template.nuxt.dev%2F&demo-title=Nuxt%20Dashboard%20Template&demo-description=A%20dashboard%20template%20with%20multi-column%20layout%20for%20building%20sophisticated%20admin%20interfaces.)
+Nuxt + Vue + Nuxt UI web client for the Catch Up Later private reading library.
 
 ## Setup
 
-Make sure to install the dependencies:
-
 ```bash
 pnpm install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
 pnpm dev
 ```
 
-## Production
+Runs on `http://localhost:3000`. Requests to `/api/**` are proxied to the
+backend (`NUXT_API_PROXY_TARGET`, default `http://localhost:8080`); the API
+client uses `runtimeConfig.public.apiBase` (`/api/v1`).
 
-Build the application for production:
-
-```bash
-pnpm build
-```
-
-Locally preview production build:
+## Checks
 
 ```bash
-pnpm preview
+pnpm lint
+pnpm typecheck
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Design system
 
-## Renovate integration
+The UI uses the **Editorial Reading Room** tokens defined in
+`app/assets/css/main.css` and mapped in `app/app.config.ts`. See
+`specifications/11-implementation/02-decisions.md` (DEC-009, DEC-010).
 
-Install [Renovate GitHub app](https://github.com/apps/renovate/installations/select_target) on your repository and you are good to go.
+## Structure
+
+```text
+app/
+  assets/css/main.css   design tokens and fonts
+  composables/useApi.ts the single HTTP client
+  layouts/              app layouts
+  pages/                routes
+  types/api.ts          API envelope types
+  utils/api.ts          error normalization
+```

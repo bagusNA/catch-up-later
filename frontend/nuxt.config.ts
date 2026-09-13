@@ -1,4 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env
+const apiProxyTarget = env?.NUXT_API_PROXY_TARGET ?? 'http://localhost:8080'
+
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
@@ -6,8 +9,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxt/hints',
     '@nuxt/image',
-    '@nuxtjs/google-fonts',
-    '@nuxtjs/i18n'
+    '@nuxtjs/google-fonts'
   ],
 
   devtools: {
@@ -16,9 +18,18 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    public: {
+      apiBase: '/api/v1'
+    }
+  },
+
+  // The frontend talks to the backend through a same-origin path. In
+  // development this proxy forwards to the backend origin; in production a
+  // reverse proxy serves the same path.
   routeRules: {
     '/api/**': {
-      cors: true
+      proxy: `${apiProxyTarget}/api/**`
     }
   },
 
@@ -31,5 +42,14 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  googleFonts: {
+    families: {
+      'Newsreader': [400, 500, 600],
+      'Hanken Grotesk': [400, 500, 600],
+      'JetBrains Mono': [400]
+    },
+    display: 'swap'
   }
 })

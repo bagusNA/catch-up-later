@@ -1,8 +1,9 @@
 {
-  "name": "wxt-vue-starter",
-  "description": "manifest.json description",
+  "name": "catch-up-later-extension",
+  "description": "Save web articles and PDFs to your private reading library.",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "packageManager": "pnpm@12.3.4",
   "type": "module",
   "scripts": {
     "dev": "wxt",

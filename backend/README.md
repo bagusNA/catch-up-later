@@ -90,20 +90,29 @@ All settings can be supplied through the usual Spring Boot mechanisms
 
 ## API
 
-All request and response bodies are JSON. Errors share one shape:
+All request and response bodies are JSON. Errors share one envelope:
 
 ```json
 {
-  "timestamp": "2026-01-01T00:00:00Z",
-  "status": 400,
-  "code": "VALIDATION_FAILED",
-  "message": "Request validation failed.",
-  "path": "/api/auth/register",
-  "fieldErrors": [
-    { "field": "email", "message": "must be a well-formed email address" }
-  ]
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message": "Request validation failed.",
+    "details": {
+      "fieldErrors": [
+        { "field": "email", "message": "must be a well-formed email address" }
+      ]
+    },
+    "requestId": "req_1f2c9a7b"
+  }
 }
 ```
+
+Every response also carries an `X-Request-ID` header; a client-supplied
+`X-Request-ID` is echoed back and included in the envelope.
+
+New endpoints are served under the versioned base `/api/v1`. The existing auth
+endpoints still live under `/api/auth` and are moved to `/api/v1/auth` in the
+identity slice.
 
 Stable error codes: `VALIDATION_FAILED`, `MALFORMED_REQUEST`, `DUPLICATE_EMAIL`,
 `WEAK_PASSWORD`, `REGISTRATION_DISABLED`, `INVALID_CREDENTIALS`,
@@ -144,6 +153,10 @@ Invalid credentials return `401 INVALID_CREDENTIALS` with a generic
 ### Current user
 
 `GET /api/auth/me` returns the authenticated user, or `401 UNAUTHENTICATED`.
+
+### Health
+
+`GET /api/v1/health` is public and returns `{ "status": "UP", "application": "catch-up-later" }`. Dependency-aware readiness checks are added in the operations slice.
 
 ### Logout
 

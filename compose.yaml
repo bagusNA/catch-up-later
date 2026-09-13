@@ -1,0 +1,21 @@
+# Local development stack.
+#
+# The backend uses an embedded SQLite database, so there is no database
+# service to run. The named volume keeps the database across container
+# restarts. A full production stack (reverse proxy, backups) is added in the
+# operations slice.
+services:
+  backend:
+    build:
+      context: ./backend
+    image: catch-up-later-backend:local
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  backend-data:

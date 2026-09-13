@@ -34,5 +34,5 @@ app:
       timeout: 30m
     registration:
       enabled: true
-      min-password-length: 8
+      min-password-length: 12
       max-password-length: 128

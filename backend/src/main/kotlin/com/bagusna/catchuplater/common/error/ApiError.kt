@@ -1,18 +1,23 @@
 package com.bagusna.catchuplater.common.error
 
-import java.time.Instant
-
 /**
- * Single, stable error representation returned by every API error path,
- * including Spring Security filter failures.
+ * Canonical error envelope returned by every API error path, including Spring
+ * Security filter failures.
+ *
+ * Shape (see `specifications/11-implementation/02-decisions.md`, DEC-002):
+ * ```json
+ * { "error": { "code": "...", "message": "...", "details": {}, "requestId": "req_..." } }
+ * ```
  */
 data class ApiError(
-    val timestamp: Instant,
-    val status: Int,
+    val error: ApiErrorBody,
+)
+
+data class ApiErrorBody(
     val code: String,
     val message: String,
-    val path: String,
-    val fieldErrors: List<FieldValidationError> = emptyList(),
+    val details: Map<String, Any?> = emptyMap(),
+    val requestId: String,
 )
 
 data class FieldValidationError(
