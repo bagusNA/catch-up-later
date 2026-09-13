@@ -1,0 +1,26 @@
+# Operating system
+.DS_Store
+
+# Editors and IDEs
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# Node / web builds
+node_modules/
+.nuxt/
+.output/
+.wxt/
+dist/
+
+# Gradle / JVM
+build/
+.gradle/
+.kotlin/
+
+# Local data and secrets
+backend/data/*.db
+.env
+.env.*
+!.env.example
