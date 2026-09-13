@@ -2,17 +2,67 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Public Sans', sans-serif;
+  /* Typography — see DEC-010. */
+  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Newsreader', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  --color-green-50: #EFFDF5;
-  --color-green-100: #D9FBE8;
-  --color-green-200: #B3F5D1;
-  --color-green-300: #75EDAE;
-  --color-green-400: #00DC82;
-  --color-green-500: #00C16A;
-  --color-green-600: #00A155;
-  --color-green-700: #007F45;
-  --color-green-800: #016538;
-  --color-green-900: #0A5331;
-  --color-green-950: #052E16;
+  /* Primary — deep terracotta. */
+  --color-cul-50: #fbf1ee;
+  --color-cul-100: #f7e0da;
+  --color-cul-200: #efc1b5;
+  --color-cul-300: #e39d8b;
+  --color-cul-400: #d2765f;
+  --color-cul-500: #b8553c;
+  --color-cul-600: #a8432d;
+  --color-cul-700: #8a3624;
+  --color-cul-800: #712c1e;
+  --color-cul-900: #5e261b;
+  --color-cul-950: #33120c;
+
+  /* Secondary — muted slate teal. */
+  --color-sage-50: #f1f6f6;
+  --color-sage-100: #dce9e9;
+  --color-sage-200: #bdd5d5;
+  --color-sage-300: #95b8b9;
+  --color-sage-400: #6e9596;
+  --color-sage-500: #4a6b6c;
+  --color-sage-600: #3d5a5b;
+  --color-sage-700: #334a4b;
+  --color-sage-800: #2b3d3e;
+  --color-sage-900: #263435;
+  --color-sage-950: #131d1e;
+
+  /* Tertiary — warm ochre. */
+  --color-ochre-50: #fdf6ee;
+  --color-ochre-100: #fae9d4;
+  --color-ochre-200: #f4d0a7;
+  --color-ochre-300: #edb274;
+  --color-ochre-400: #e2984f;
+  --color-ochre-500: #c47d38;
+  --color-ochre-600: #a9632c;
+  --color-ochre-700: #8b4e27;
+  --color-ochre-800: #723f25;
+  --color-ochre-900: #5e3521;
+  --color-ochre-950: #341a0e;
+
+  /* Error — deep rust. */
+  --color-rust-50: #fbf1ef;
+  --color-rust-100: #f7ded9;
+  --color-rust-200: #efbcb2;
+  --color-rust-300: #e29280;
+  --color-rust-400: #d1654d;
+  --color-rust-500: #b74530;
+  --color-rust-600: #8f2d1f;
+  --color-rust-700: #79271c;
+  --color-rust-800: #64231b;
+  --color-rust-900: #542019;
+  --color-rust-950: #2e0f0a;
+
+  /* Semantic surfaces (Editorial Reading Room). */
+  --color-surface: #f9f7f2;
+  --color-surface-container: #f0ede4;
+  --color-outline: #e3dfd5;
+  --color-on-surface: #23211e;
+  --color-on-surface-variant: #57534e;
 }

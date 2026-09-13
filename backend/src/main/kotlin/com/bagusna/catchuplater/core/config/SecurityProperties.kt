@@ -62,7 +62,7 @@ data class SecurityProperties(
         val enabled: Boolean = true,
         @field:Min(8)
         @field:Max(256)
-        val minPasswordLength: Int = 8,
+        val minPasswordLength: Int = 12,
         @field:Min(8)
         @field:Max(256)
         val maxPasswordLength: Int = 128,

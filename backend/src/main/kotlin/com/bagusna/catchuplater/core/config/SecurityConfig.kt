@@ -1,5 +1,6 @@
 package com.bagusna.catchuplater.core.config
 
+import com.bagusna.catchuplater.common.api.ApiRoutes
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -92,6 +93,7 @@ class SecurityConfig {
             }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(HttpMethod.GET, "/api/auth/csrf").permitAll()
+                auth.requestMatchers(HttpMethod.GET, "${ApiRoutes.V1}/health").permitAll()
                 auth.requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
                 auth.requestMatchers(HttpMethod.GET, "/v3/api-docs/**").permitAll()
                 auth.requestMatchers(HttpMethod.GET, "/scalar/**").permitAll()

@@ -1,5 +1,6 @@
 {
-  "name": "frontend",
+  "name": "catch-up-later-frontend",
+  "description": "Web client for the Catch Up Later private reading library.",
   "private": true,
   "type": "module",
   "scripts": {

@@ -18,7 +18,7 @@ class AuthorizationApiTest : IntegrationTestBase() {
 
         mockMvc.perform(get("/api/admin/overview").session(csrf.session))
             .andExpect(status().isForbidden)
-            .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
+            .andExpect(jsonPath("$.error.code").value("ACCESS_DENIED"))
     }
 
     @Test
@@ -35,6 +35,6 @@ class AuthorizationApiTest : IntegrationTestBase() {
     fun `anonymous user is challenged for the admin endpoint`() {
         mockMvc.perform(get("/api/admin/overview"))
             .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"))
+            .andExpect(jsonPath("$.error.code").value("UNAUTHENTICATED"))
     }
 }
