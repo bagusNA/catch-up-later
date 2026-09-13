@@ -245,3 +245,23 @@ The extension does not browse or read pages at rest — capture is still only
 triggered by an explicit user action — but the manifest does ask for broad host
 access up front. `fflate` plus the package builder move from the page bundle to
 the service worker.
+
+## DEC-019 — FTS5 index lives in a sidecar SQLite database
+
+**Context:** SQLite reports FTS5 virtual-table columns with an empty type name,
+which Hibernate's schema extractor cannot parse. With `ddl-auto=validate` the
+application fails to start as soon as the virtual table exists in the main
+schema, and Hibernate's schema `SchemaFilter` is applied after column
+extraction, so it cannot hide the table.
+
+**Decision:** Keep the `content_search` FTS5 virtual table in its own SQLite
+database file (`app.search.database-path`, default `./data/search.db`), created
+by `SearchDatabaseConfig`. Application code indexes and queries it through a
+dedicated `JdbcTemplate`, and the main query joins are replaced by an id list
+from the index.
+
+**Consequences:** The main schema stays fully validated by Hibernate. The index
+is derived data and can be rebuilt at any time (`POST /api/v1/admin/search/reindex`,
+`GET /api/v1/admin/search/integrity`), so the two databases are eventually
+consistent rather than transactional. Tag assignment changes trigger a reindex
+of the affected item.

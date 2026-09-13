@@ -9,4 +9,6 @@ interface ArtifactVersionRepository : JpaRepository<ArtifactVersion, Int> {
     fun findByContentItemIdOrderByVersionNumberDesc(contentItemId: Int): List<ArtifactVersion>
 
     fun findByContentItemIdInAndIsCurrentTrue(contentItemIds: Collection<Int>): List<ArtifactVersion>
+
+    fun deleteAllByContentItemId(contentItemId: Int)
 }

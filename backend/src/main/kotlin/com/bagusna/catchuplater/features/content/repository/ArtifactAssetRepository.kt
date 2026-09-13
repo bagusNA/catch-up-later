@@ -7,4 +7,6 @@ interface ArtifactAssetRepository : JpaRepository<ArtifactAsset, Int> {
     fun findByArtifactVersionIdOrderByAssetKey(artifactVersionId: Int): List<ArtifactAsset>
 
     fun findByArtifactVersionIdAndAssetKey(artifactVersionId: Int, assetKey: String): ArtifactAsset?
+
+    fun deleteAllByArtifactVersionId(artifactVersionId: Int)
 }
