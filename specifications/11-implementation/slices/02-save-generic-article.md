@@ -28,18 +28,18 @@ before adding adapters or library features.
 
 ## Acceptance criteria
 
-- [ ] Saving an ordinary article in the extension returns a `captureId` and
+- [x] Saving an ordinary article in the extension returns a `captureId` and
       eventually `READY`.
-- [ ] The backend independently rejects invalid packages, re-sanitizes HTML,
+- [x] The backend independently rejects invalid packages, re-sanitizes HTML,
       validates MIME signatures, and enforces size/count limits.
-- [ ] Stored artifacts are immutable under a generated, owner-scoped path;
+- [x] Stored artifacts are immutable under a generated, owner-scoped path;
       writes use staging + atomic commit.
-- [ ] The article appears in the Library and renders with local images, no
+- [x] The article appears in the Library and renders with local images, no
       script execution, and no dependency on the source site.
-- [ ] A capture with missing assets still becomes `READY` with warnings.
-- [ ] `GET /api/v1/content-items/{id}/reader` and asset endpoints enforce
+- [x] A capture with missing assets still becomes `READY` with warnings.
+- [x] `GET /api/v1/content-items/{id}/reader` and asset endpoints enforce
       ownership.
-- [ ] The capture package schema is documented and versioned.
+- [x] The capture package schema is documented and versioned.
 
 ## Tasks
 
