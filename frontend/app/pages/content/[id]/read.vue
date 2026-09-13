@@ -6,7 +6,7 @@ const api = useApi()
 const id = computed(() => String(route.params.id))
 
 const { data, pending, error } = await useAsyncData(
-  () => `reader-${id.value}`,
+  `reader-${id.value}`,
   () => api<ReaderResponse>(`/content-items/${id.value}/reader`)
 )
 
