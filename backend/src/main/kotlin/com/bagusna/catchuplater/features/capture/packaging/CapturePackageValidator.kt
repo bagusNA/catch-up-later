@@ -6,6 +6,7 @@ import com.bagusna.catchuplater.features.content.domain.ArtifactType
 import org.springframework.stereotype.Component
 import java.net.URI
 import java.time.Instant
+import java.time.OffsetDateTime
 
 data class ValidatedAsset(
     val assetKey: String,
@@ -100,11 +101,11 @@ class CapturePackageValidator(
             author = normalizeText(manifest.metadata.author, MAX_AUTHOR_LENGTH),
             description = normalizeText(manifest.metadata.description, properties.maxDescriptionLength),
             siteName = normalizeText(manifest.metadata.siteName, MAX_NAME_LENGTH),
-            publishedAt = manifest.metadata.publishedAt,
+            publishedAt = parseInstant(manifest.metadata.publishedAt),
             html = html,
             text = text,
             assets = validatedAssets,
-            capturedAt = manifest.capture.capturedAt ?: Instant.now(),
+            capturedAt = parseInstant(manifest.capture.capturedAt) ?: Instant.now(),
             warnings = warnings,
         )
     }
@@ -210,6 +211,24 @@ class CapturePackageValidator(
     private fun normalizeInformationalUrl(value: String?): String? {
         val trimmed = value?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         return trimmed.take(properties.maxUrlLength)
+    }
+
+    /**
+     * Parses an optional ISO-8601 timestamp leniently. Source pages expose
+     * publication dates in many shapes, so an unparseable value is dropped
+     * rather than failing the whole capture.
+     */
+    private fun parseInstant(value: String?): Instant? {
+        val trimmed = value?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        return try {
+            Instant.parse(trimmed)
+        } catch (_: Exception) {
+            try {
+                OffsetDateTime.parse(trimmed).toInstant()
+            } catch (_: Exception) {
+                null
+            }
+        }
     }
 
     private fun normalizeText(value: String?, maxLength: Int): String? {

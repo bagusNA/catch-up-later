@@ -65,7 +65,7 @@ export class GenericReadabilityAdapter implements SourceAdapter {
       author: nonBlank(parsed.byline) ?? metaContent(document, 'article:author'),
       description: nonBlank(parsed.excerpt) ?? metaContent(document, 'description'),
       siteName: siteName ?? undefined,
-      publishedAt: nonBlank(parsed.publishedTime) ?? metaContent(document, 'article:published_time'),
+      publishedAt: toIsoDate(nonBlank(parsed.publishedTime) ?? metaContent(document, 'article:published_time')),
       imageAssetKey: collected.imageAssetKey,
     }
 
@@ -122,4 +122,11 @@ function metaContent(document: Document, selector: string): string | undefined {
 function nonBlank(value: string | null | undefined): string | undefined {
   const trimmed = value?.trim()
   return trimmed ? trimmed : undefined
+}
+
+/** Normalizes a source publication date to ISO-8601, or drops it if invalid. */
+function toIsoDate(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }

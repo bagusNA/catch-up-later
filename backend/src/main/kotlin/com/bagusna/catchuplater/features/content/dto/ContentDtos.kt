@@ -40,7 +40,7 @@ data class ReaderMetadata(
     val author: String?,
     val description: String?,
     val siteName: String?,
-    val publishedAt: Instant?,
+    val publishedAt: String?,
     val language: String?,
     val readingTimeMinutes: Int?,
 )

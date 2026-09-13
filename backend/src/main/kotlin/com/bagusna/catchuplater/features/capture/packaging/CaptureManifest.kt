@@ -1,7 +1,6 @@
 package com.bagusna.catchuplater.features.capture.packaging
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import java.time.Instant
 
 /**
  * Capture package schema version 1 manifest (`manifest.json`).
@@ -51,7 +50,7 @@ data class CaptureMetadata(
     val author: String? = null,
     val description: String? = null,
     val siteName: String? = null,
-    val publishedAt: Instant? = null,
+    val publishedAt: String? = null,
     val image: CaptureImageReference? = null,
 )
 
@@ -74,7 +73,7 @@ data class CaptureAssetReference(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CaptureInfo(
-    val capturedAt: Instant? = null,
+    val capturedAt: String? = null,
     val warnings: List<CaptureWarning> = emptyList(),
 )
 
