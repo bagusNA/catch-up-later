@@ -79,9 +79,11 @@ All settings can be supplied through the usual Spring Boot mechanisms
 | `app.security.session.cookie-secure` | `true` | `Secure` cookie flag (set `false` for local HTTP) |
 | `app.security.session.cookie-same-site` | `Lax` | `Lax`, `Strict`, `None` or `Omitted` |
 | `app.security.session.timeout` | `30m` | Session timeout |
-| `app.security.registration.enabled` | `true` | Toggle self-registration |
+| `app.security.registration.enabled` | `false` | Toggle public self-registration |
 | `app.security.registration.min-password-length` | `12` | Minimum password length |
 | `app.security.registration.max-password-length` | `128` | Maximum password length |
+| `app.security.tokens.access-ttl` | `15m` | Bearer access-token lifetime |
+| `app.security.tokens.refresh-ttl` | `30d` | Bearer refresh-token lifetime |
 
 `SecurityProperties` is `@Validated` and rejects invalid values at startup
 (for example, `SameSite=None` without `cookie-secure=true`, or an unknown
@@ -110,12 +112,11 @@ All request and response bodies are JSON. Errors share one envelope:
 Every response also carries an `X-Request-ID` header; a client-supplied
 `X-Request-ID` is echoed back and included in the envelope.
 
-New endpoints are served under the versioned base `/api/v1`. The existing auth
-endpoints still live under `/api/auth` and are moved to `/api/v1/auth` in the
-identity slice.
+Every endpoint is served under the versioned base `/api/v1`.
 
 Stable error codes: `VALIDATION_FAILED`, `MALFORMED_REQUEST`, `DUPLICATE_EMAIL`,
-`WEAK_PASSWORD`, `REGISTRATION_DISABLED`, `INVALID_CREDENTIALS`,
+`WEAK_PASSWORD`, `REGISTRATION_DISABLED`, `SETUP_ALREADY_COMPLETED`,
+`INVALID_CREDENTIALS`, `INVALID_TOKEN`, `INVALID_PASSWORD`,
 `UNAUTHENTICATED`, `ACCESS_DENIED`, `NOT_FOUND`, `METHOD_NOT_ALLOWED`,
 `UNSUPPORTED_MEDIA_TYPE`, `INTERNAL_ERROR`.
 
@@ -126,18 +127,29 @@ first and send it back in the `X-XSRF-TOKEN` header. The same token is written
 to the `XSRF-TOKEN` cookie.
 
 ```bash
-curl -c cookies.txt http://localhost:8080/api/auth/csrf
+curl -c cookies.txt http://localhost:8080/api/v1/auth/csrf
 # {"headerName":"X-XSRF-TOKEN","parameterName":"_csrf","token":"..."}
 ```
 
+### Setup (first run)
+
+`GET /api/v1/setup/status` is public and returns `{ "required": true }` while
+the instance has no accounts. `POST /api/v1/setup` creates the first account
+with both `ROLE_USER` and `ROLE_ADMIN`, and returns the public user. Once any
+account exists the endpoint returns `409 SETUP_ALREADY_COMPLETED`. Public
+registration stays closed unless `app.security.registration.enabled=true`.
+
 ### Register
+
+Public registration, disabled by default. When enabled, call
+`POST /api/v1/auth/register`:
 
 ```bash
 curl -b cookies.txt -c cookies.txt \
   -H 'Content-Type: application/json' \
   -H 'X-XSRF-TOKEN: <token>' \
   -d '{"email":"user@example.com","password":"correct-horse-battery-staple","displayName":"User"}' \
-  http://localhost:8080/api/auth/register
+  http://localhost:8080/api/v1/auth/register
 ```
 
 `201 Created` with `{ "id", "email", "displayName", "roles" }`. Duplicate emails
@@ -145,14 +157,36 @@ return `409 DUPLICATE_EMAIL`; the database enforces case-insensitive uniqueness.
 
 ### Login
 
-`POST /api/auth/login` with `{ "email", "password" }`. On success the security
+`POST /api/v1/auth/login` with `{ "email", "password" }`. On success the security
 context is stored in the HTTP session and a hardened session cookie is issued.
 Invalid credentials return `401 INVALID_CREDENTIALS` with a generic
 `"Invalid email or password."` message, whether or not the email exists.
 
 ### Current user
 
-`GET /api/auth/me` returns the authenticated user, or `401 UNAUTHENTICATED`.
+`GET /api/v1/auth/me` returns the authenticated user, or `401 UNAUTHENTICATED`.
+
+### Extension tokens
+
+`POST /api/v1/auth/token` with `{ "email", "password" }` returns an access and
+refresh token pair for the browser extension. Access tokens are short-lived
+(15 minutes by default); refresh tokens rotate on every use and replaying a
+rotated token revokes the whole family.
+
+- `POST /api/v1/auth/token/refresh` with `{ "refreshToken" }` rotates the pair.
+- `POST /api/v1/auth/token/revoke` with `{ "refreshToken" }` revokes the family.
+
+Send the access token as `Authorization: Bearer <token>`. Token endpoints are
+CSRF-exempt, as are requests carrying a bearer token. Only SHA-256 hashes of
+tokens are stored.
+
+### Account
+
+- `PATCH /api/v1/users/me` with `{ "displayName" }` updates the profile.
+- `POST /api/v1/users/me/password` with `{ "currentPassword", "newPassword" }`
+  changes the password and revokes all extension tokens for the account.
+
+Both accept either a session or a bearer token.
 
 ### Health
 
@@ -160,12 +194,12 @@ Invalid credentials return `401 INVALID_CREDENTIALS` with a generic
 
 ### Logout
 
-`POST /api/auth/logout` invalidates the HTTP session, clears the security
+`POST /api/v1/auth/logout` invalidates the HTTP session, clears the security
 context and deletes the session cookie. It returns `204 No Content`.
 
 ### Admin example
 
-`GET /api/admin/overview` requires `ROLE_ADMIN` and is protected both by the URL
+`GET /api/v1/admin/overview` requires `ROLE_ADMIN` and is protected both by the URL
 authorization rule and by `@PreAuthorize`.
 
 ## Authentication flow
@@ -190,8 +224,9 @@ of any API response.
 
 ## Roles and bootstrapping an admin
 
-Migrations seed `ROLE_USER` and `ROLE_ADMIN`. Registration always assigns
-`ROLE_USER`. To promote an existing account to admin:
+Migrations seed `ROLE_USER` and `ROLE_ADMIN`. The first account created through
+`POST /api/v1/setup` receives both roles. Public registration, when enabled,
+assigns only `ROLE_USER`. To promote an existing account to admin manually:
 
 ```sql
 INSERT INTO user_roles (user_id, role_id)

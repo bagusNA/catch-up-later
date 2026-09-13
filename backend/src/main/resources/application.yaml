@@ -33,6 +33,9 @@ app:
       cookie-same-site: Lax
       timeout: 30m
     registration:
-      enabled: true
+      enabled: false
       min-password-length: 12
       max-password-length: 128
+    tokens:
+      access-ttl: 15m
+      refresh-ttl: 30d

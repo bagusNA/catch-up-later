@@ -46,13 +46,13 @@ class SessionCookieIntegrationTest {
         val client = HttpClient.newBuilder().cookieHandler(cookieManager).build()
 
         val csrfResponse = client.send(
-            HttpRequest.newBuilder(uri("/api/auth/csrf")).GET().build(),
+            HttpRequest.newBuilder(uri("/api/v1/auth/csrf")).GET().build(),
             HttpResponse.BodyHandlers.ofString(),
         )
         val token = objectMapper.readTree(csrfResponse.body()).get("token").asText()
 
         val loginResponse = client.send(
-            HttpRequest.newBuilder(uri("/api/auth/login"))
+            HttpRequest.newBuilder(uri("/api/v1/auth/login"))
                 .header("X-XSRF-TOKEN", token)
                 .header("Content-Type", "application/json")
                 .POST(

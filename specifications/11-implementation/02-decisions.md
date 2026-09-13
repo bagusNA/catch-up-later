@@ -168,3 +168,31 @@ every PR and push. See `01-delivery-plan.md`.
 | Artifact storage | Filesystem behind an `ArtifactStorage` interface |
 | Full-text search | SQLite FTS5 |
 | API docs | springdoc-openapi under `/api/v1` |
+
+## DEC-014 — The web client is a single-page app
+
+**Context:** Session-cookie authentication plus server-side rendering requires
+forwarding cookies between the Nuxt server and the backend, and makes the first
+render depend on the backend being reachable from the server.
+
+**Decision:** The web client renders as an SPA (`ssr: false`). All API calls go
+through the browser over the same-origin `/api` path (dev proxy in development,
+reverse proxy in production).
+
+**Consequences:** No SSR cookie forwarding and one consistent auth path. The
+library is private, so server-side rendering adds no value.
+
+## DEC-015 — Opaque, hashed, rotating bearer tokens
+
+**Context:** DEC-003 chose bearer tokens for the extension but left the format
+open.
+
+**Decision:** Access and refresh tokens are opaque 256-bit random strings stored
+only as SHA-256 hashes in SQLite (`auth_tokens`). Access tokens live 15 minutes;
+refresh tokens live 30 days and rotate on every use. Tokens belong to a family;
+replaying a rotated refresh token revokes the whole family. Changing the
+password revokes every token for the account.
+
+**Consequences:** Tokens are revocable with no signing-key management, and a
+leaked database does not yield usable credentials. Each bearer request performs
+one indexed lookup.

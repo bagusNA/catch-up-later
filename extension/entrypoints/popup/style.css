@@ -67,6 +67,20 @@ h1 {
   cursor: not-allowed;
 }
 
+.secondary {
+  border: 1px solid var(--cul-outline);
+  border-radius: 0.25rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--cul-on-surface);
+  background: transparent;
+  cursor: pointer;
+}
+
+.secondary:hover {
+  background: var(--cul-surface-container);
+}
+
 .status {
   margin: 0;
   font-size: 0.8125rem;

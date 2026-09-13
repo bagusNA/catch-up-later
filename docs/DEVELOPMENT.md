@@ -66,10 +66,13 @@ pnpm install
 pnpm dev
 ```
 
-- Runs on `http://localhost:3000`.
+- Runs on `http://localhost:3000` as a single-page app (`ssr: false`, DEC-014).
+- On a fresh backend, `/setup` creates the first account; afterwards `/login`
+  signs in.
 - Requests to `/api/**` are proxied to the backend origin
   (`NUXT_API_PROXY_TARGET`, default `http://localhost:8080`).
-- The API client uses `runtimeConfig.public.apiBase` (`/api/v1` by default).
+- The API client uses `runtimeConfig.public.apiBase` (`/api/v1` by default) and
+  adds the `X-XSRF-TOKEN` header to state-changing requests.
 - Copy `.env.example` to `.env` to override either value.
 
 Checks:
@@ -90,7 +93,10 @@ pnpm compile      # type-check
 ```
 
 The extension only captures on explicit user action and requests `activeTab` +
-`scripting` rather than broad host permissions.
+`scripting` rather than broad host permissions. Open the extension's options
+page, enter the backend URL and your account credentials, and connect. Tokens
+are stored with `browser.storage.local` and refreshed by the background worker;
+the popup never talks to the backend directly.
 
 ## Environment variables
 
@@ -104,6 +110,8 @@ The extension only captures on explicit user action and requests `activeTab` +
 
 - All public JSON endpoints live under `/api/v1` and use the error envelope
   `{ "error": { "code", "message", "details", "requestId" } }`.
+- The web client authenticates with session cookies and CSRF; the extension uses
+  bearer access/refresh tokens (DEC-003, DEC-015).
 - The frontend reaches the backend through the single `useApi()` client; do not
   call `$fetch` directly from components.
 - The extension talks to the backend from its background service worker only.

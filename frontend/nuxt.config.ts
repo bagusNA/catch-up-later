@@ -12,6 +12,10 @@ export default defineNuxtConfig({
     '@nuxtjs/google-fonts'
   ],
 
+  // Rendered as an SPA: authentication uses session cookies and the app has no
+  // public, indexable content.
+  ssr: false,
+
   devtools: {
     enabled: true
   },

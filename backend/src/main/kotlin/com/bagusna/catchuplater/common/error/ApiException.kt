@@ -29,3 +29,27 @@ class RegistrationDisabledException : ApiException(
     code = "REGISTRATION_DISABLED",
     message = "Account registration is currently disabled.",
 )
+
+class SetupAlreadyCompletedException : ApiException(
+    status = HttpStatus.CONFLICT,
+    code = "SETUP_ALREADY_COMPLETED",
+    message = "Initial setup has already been completed.",
+)
+
+class InvalidTokenException : ApiException(
+    status = HttpStatus.UNAUTHORIZED,
+    code = "INVALID_TOKEN",
+    message = "The token is invalid or has expired.",
+)
+
+class InvalidPasswordException : ApiException(
+    status = HttpStatus.BAD_REQUEST,
+    code = "INVALID_PASSWORD",
+    message = "The current password is incorrect.",
+)
+
+class ResourceNotFoundException(message: String = "The requested resource was not found.") : ApiException(
+    status = HttpStatus.NOT_FOUND,
+    code = "NOT_FOUND",
+    message = message,
+)

@@ -21,6 +21,8 @@ data class SecurityProperties(
     val session: SessionProperties = SessionProperties(),
     @field:Valid
     val registration: RegistrationProperties = RegistrationProperties(),
+    @field:Valid
+    val tokens: TokenProperties = TokenProperties(),
 ) {
     data class SessionProperties(
         @field:NotBlank
@@ -59,7 +61,7 @@ data class SecurityProperties(
     }
 
     data class RegistrationProperties(
-        val enabled: Boolean = true,
+        val enabled: Boolean = false,
         @field:Min(8)
         @field:Max(256)
         val minPasswordLength: Int = 12,

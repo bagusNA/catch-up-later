@@ -1,24 +1,55 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { browser } from 'wxt/browser';
+import { onMounted, ref } from 'vue';
+import type { MessageResult } from '@/lib/auth';
 
-/**
- * Popup placeholder for the foundation slice.
- *
- * The save flow (adapter selection, packaging, upload and status) is delivered
- * in the core capture slice. This placeholder establishes the shell and the
- * product identity so the extension builds and loads cleanly.
- */
-const saving = ref(false);
-const message = ref('Capture is coming in the next slice.');
+const loading = ref(true);
+const connected = ref(false);
+const email = ref<string | null>(null);
+
+onMounted(async () => {
+  const result = (await browser.runtime.sendMessage({ type: 'auth:status' })) as MessageResult;
+  if (result.ok) {
+    connected.value = result.connected ?? false;
+    email.value = result.user?.email ?? null;
+  }
+  loading.value = false;
+});
+
+function openOptions() {
+  browser.runtime.openOptionsPage();
+}
 </script>
 
 <template>
   <main class="popup">
     <h1>Catch Up Later</h1>
     <p class="tagline">Save something interesting now. Read it later.</p>
-    <button type="button" class="save" :disabled="saving">
-      {{ saving ? 'Saving…' : 'Save this page' }}
+
+    <p v-if="loading" class="status">
+      Checking connection…
+    </p>
+
+    <template v-else-if="connected">
+      <button type="button" class="save" disabled>
+        Save this page
+      </button>
+      <p class="status">
+        Connected as {{ email }}. Capture arrives in the next slice.
+      </p>
+    </template>
+
+    <template v-else>
+      <button type="button" class="save" @click="openOptions">
+        Connect to your library
+      </button>
+      <p class="status">
+        Not connected yet.
+      </p>
+    </template>
+
+    <button type="button" class="secondary" @click="openOptions">
+      Settings
     </button>
-    <p class="status">{{ message }}</p>
   </main>
 </template>

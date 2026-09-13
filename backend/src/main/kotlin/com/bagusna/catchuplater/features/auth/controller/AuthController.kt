@@ -1,5 +1,6 @@
 package com.bagusna.catchuplater.features.auth.controller
 
+import com.bagusna.catchuplater.common.api.ApiRoutes
 import com.bagusna.catchuplater.features.auth.dto.CsrfTokenResponse
 import com.bagusna.catchuplater.features.auth.dto.LoginRequest
 import com.bagusna.catchuplater.core.security.AppUserPrincipal
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("${ApiRoutes.V1}/auth")
 class AuthController(
     private val authService: AuthService,
     private val userRegistrationService: UserRegistrationService,

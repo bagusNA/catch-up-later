@@ -16,6 +16,9 @@ class SecurityPropertiesTest {
         assertThat(properties.session.cookieSecure).isTrue()
         assertThat(properties.session.sameSite()).isEqualTo(Cookie.SameSite.LAX)
         assertThat(properties.registration.minPasswordLength).isEqualTo(12)
+        assertThat(properties.registration.enabled).isFalse()
+        assertThat(properties.tokens.accessTtl).isEqualTo(Duration.ofMinutes(15))
+        assertThat(properties.tokens.refreshTtl).isEqualTo(Duration.ofDays(30))
     }
 
     @Test

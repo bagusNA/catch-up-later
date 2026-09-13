@@ -1,6 +1,7 @@
 package com.bagusna.catchuplater.core.config
 
 import com.bagusna.catchuplater.common.api.ApiRoutes
+import com.bagusna.catchuplater.core.security.BearerTokenAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy
 import org.springframework.security.web.context.DelegatingSecurityContextRepository
@@ -24,6 +26,7 @@ import org.springframework.security.web.context.RequestAttributeSecurityContextR
 import org.springframework.security.web.context.SecurityContextRepository
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
+import org.springframework.security.web.util.matcher.RequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -77,27 +80,48 @@ class SecurityConfig {
         entryPoint: JsonAuthenticationEntryPoint,
         accessDeniedHandler: JsonAccessDeniedHandler,
         logoutSuccessHandler: JsonLogoutSuccessHandler,
+        bearerTokenAuthenticationFilter: BearerTokenAuthenticationFilter,
     ): SecurityFilterChain {
         http
-            // Cookie-based CSRF protection. The plain request handler keeps the
-            // token in the `XSRF-TOKEN` cookie and the response body identical,
-            // which is what the JSON API expects.
+            // Cookie-based CSRF protection for the web client. Extension requests
+            // are exempt: the token endpoints are public, and requests carrying a
+            // bearer token have no session cookie to protect.
             .csrf { csrf ->
                 csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 csrf.csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
+                csrf.ignoringRequestMatchers("${ApiRoutes.V1}/auth/token", "${ApiRoutes.V1}/auth/token/**")
+                csrf.ignoringRequestMatchers(
+                    RequestMatcher { request ->
+                        request.getHeader(BearerTokenAuthenticationFilter.AUTHORIZATION)
+                            ?.startsWith(BearerTokenAuthenticationFilter.BEARER_PREFIX) == true
+                    },
+                )
             }
             .securityContext { it.securityContextRepository(securityContextRepository) }
             .sessionManagement { session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 session.sessionFixation { it.changeSessionId() }
             }
+            .addFilterBefore(bearerTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers(HttpMethod.GET, "/api/auth/csrf").permitAll()
                 auth.requestMatchers(HttpMethod.GET, "${ApiRoutes.V1}/health").permitAll()
-                auth.requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                auth.requestMatchers(HttpMethod.GET, "${ApiRoutes.V1}/auth/csrf").permitAll()
+                auth.requestMatchers(HttpMethod.GET, "${ApiRoutes.V1}/setup/status").permitAll()
+                auth.requestMatchers(
+                    HttpMethod.POST,
+                    "${ApiRoutes.V1}/auth/register",
+                    "${ApiRoutes.V1}/auth/login",
+                    "${ApiRoutes.V1}/setup",
+                ).permitAll()
+                auth.requestMatchers(
+                    HttpMethod.POST,
+                    "${ApiRoutes.V1}/auth/token",
+                    "${ApiRoutes.V1}/auth/token/refresh",
+                    "${ApiRoutes.V1}/auth/token/revoke",
+                ).permitAll()
                 auth.requestMatchers(HttpMethod.GET, "/v3/api-docs/**").permitAll()
                 auth.requestMatchers(HttpMethod.GET, "/scalar/**").permitAll()
-                auth.requestMatchers("/api/admin/**").hasRole("ADMIN")
+                auth.requestMatchers("${ApiRoutes.V1}/admin/**").hasRole("ADMIN")
                 auth.anyRequest().authenticated()
             }
             .exceptionHandling { exceptions ->
@@ -105,7 +129,7 @@ class SecurityConfig {
                 exceptions.accessDeniedHandler(accessDeniedHandler)
             }
             .logout { logout ->
-                logout.logoutUrl("/api/auth/logout")
+                logout.logoutUrl("${ApiRoutes.V1}/auth/logout")
                 logout.logoutSuccessHandler(logoutSuccessHandler)
                 logout.invalidateHttpSession(true)
                 logout.clearAuthentication(true)

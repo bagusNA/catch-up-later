@@ -17,3 +17,14 @@ export interface ApiErrorBody {
 export interface ApiErrorEnvelope {
   error: ApiErrorBody
 }
+
+export interface AuthUser {
+  id: number
+  email: string
+  displayName: string | null
+  roles: string[]
+}
+
+export interface SetupStatus {
+  required: boolean
+}
