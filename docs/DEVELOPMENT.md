@@ -47,7 +47,20 @@ cd backend
 ```
 
 Tests run against real, file-based SQLite databases under
-`backend/build/test-data/`.
+`backend/build/test-data/`. Each test context also gets an isolated artifact
+storage directory.
+
+### Capture storage
+
+Captured packages are validated, re-sanitized, and stored on the filesystem:
+
+- Immutable artifacts: `backend/data/artifacts/{ownerId}/{contentItemId}/{version}/`
+- In-progress uploads: `backend/data/staging/{stagingId}/`
+
+Files are written to staging and moved into place atomically before the
+database is marked ready. Size and count limits live under `app.capture` in
+`backend/src/main/resources/application.yaml`; the package format is documented
+in [`specifications/03-capture/04-capture-package-schema-v1.md`](../specifications/03-capture/04-capture-package-schema-v1.md).
 
 ### Backend via Docker Compose
 
@@ -90,13 +103,16 @@ pnpm install
 pnpm dev          # Chrome, loads an unpacked build
 pnpm dev:firefox
 pnpm compile      # type-check
+pnpm test         # adapter and packaging fixture tests
 ```
 
 The extension only captures on explicit user action and requests `activeTab` +
 `scripting` rather than broad host permissions. Open the extension's options
 page, enter the backend URL and your account credentials, and connect. Tokens
 are stored with `browser.storage.local` and refreshed by the background worker;
-the popup never talks to the backend directly.
+the popup never talks to the backend directly. On a supported article, click
+**Save this page** in the popup; the package is built in the page context and
+uploaded by the service worker.
 
 ## Environment variables
 
