@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: catch-up-later
+  datasource:
+    url: jdbc:sqlite:./data/app.db
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      # SQLite does not enforce foreign keys by default, and enforcement is a
+      # per-connection setting.
+      connection-init-sql: PRAGMA foreign_keys=ON
+  jpa:
+    open-in-view: false
+    hibernate:
+      # The schema is owned by Flyway. Never let Hibernate mutate it.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.community.dialect.SQLiteDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+
+# Application-level security settings. These are validated at startup and the
+# application fails fast if they are invalid.
+app:
+  security:
+    session:
+      cookie-name: CUL_SESSION
+      # Set to false only for local HTTP development.
+      cookie-secure: true
+      cookie-same-site: Lax
+      timeout: 30m
+    registration:
+      enabled: true
+      min-password-length: 8
+      max-password-length: 128

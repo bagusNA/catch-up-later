@@ -1,0 +1,12 @@
+# Local development over plain HTTP.
+#
+# The default configuration uses secure (HTTPS-only) session cookies. Browsers
+# will not send a Secure cookie over plain HTTP, so activate this profile when
+# running the application locally without TLS:
+#
+#   ./gradlew bootRun --args='--spring.profiles.active=local'
+#
+app:
+  security:
+    session:
+      cookie-secure: false

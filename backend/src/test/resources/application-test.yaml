@@ -1,0 +1,5 @@
+app:
+  security:
+    session:
+      # MockMvc does not exercise TLS, so secure cookies are disabled in tests.
+      cookie-secure: false
