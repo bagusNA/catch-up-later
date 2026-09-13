@@ -110,6 +110,27 @@ class ArtifactUnavailableException(message: String = "The artifact is not availa
     message = message,
 )
 
+/** A tag with the same case-insensitive name already exists for this owner. */
+class DuplicateTagException : ApiException(
+    status = HttpStatus.CONFLICT,
+    code = "TAG_EXISTS",
+    message = "A tag with this name already exists.",
+)
+
+/** The supplied tag name is empty or too long. */
+class InvalidTagException(message: String) : ApiException(
+    status = HttpStatus.BAD_REQUEST,
+    code = "INVALID_TAG",
+    message = message,
+)
+
+/** The supplied reading status or position payload is invalid. */
+class InvalidReadingStateException(message: String) : ApiException(
+    status = HttpStatus.BAD_REQUEST,
+    code = "INVALID_READING_STATE",
+    message = message,
+)
+
 /**
  * A capture could not be processed. Unlike most [ApiException]s this does not
  * roll back the capture job's failure state, so the client can poll it.

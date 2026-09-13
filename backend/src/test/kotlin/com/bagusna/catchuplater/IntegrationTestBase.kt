@@ -139,6 +139,11 @@ abstract class IntegrationTestBase {
             val storage = Files.createTempDirectory(directory, "catch-up-later-storage-")
             registry.add("app.storage.artifacts-dir") { storage.resolve("artifacts").toString() }
             registry.add("app.storage.staging-dir") { storage.resolve("staging").toString() }
+
+            // The FTS5 sidecar database is isolated per context for the same
+            // reason as the main database.
+            val searchDatabase = Files.createTempFile(directory, "catch-up-later-search-", ".db")
+            registry.add("app.search.database-path") { searchDatabase.toAbsolutePath().toString() }
         }
     }
 }

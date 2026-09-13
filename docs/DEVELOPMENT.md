@@ -62,6 +62,14 @@ database is marked ready. Size and count limits live under `app.capture` in
 `backend/src/main/resources/application.yaml`; the package format is documented
 in [`specifications/03-capture/04-capture-package-schema-v1.md`](../specifications/03-capture/04-capture-package-schema-v1.md).
 
+### Search index
+
+The FTS5 full-text index lives in a sidecar SQLite database
+(`app.search.database-path`, default `backend/data/search.db`, see DEC-019). It
+is derived data: rebuild it with `POST /api/v1/admin/search/reindex` (optionally
+`?contentItemId=`) and inspect it with `GET /api/v1/admin/search/integrity`.
+Both endpoints require the admin role.
+
 ### Backend via Docker Compose
 
 ```bash
@@ -92,6 +100,7 @@ Checks:
 
 ```bash
 pnpm lint
+pnpm test
 pnpm typecheck
 ```
 

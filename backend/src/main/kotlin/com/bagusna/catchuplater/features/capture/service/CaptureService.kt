@@ -27,6 +27,7 @@ import com.bagusna.catchuplater.features.content.domain.ValidationStatus
 import com.bagusna.catchuplater.features.content.repository.ArtifactAssetRepository
 import com.bagusna.catchuplater.features.content.repository.ArtifactVersionRepository
 import com.bagusna.catchuplater.features.content.repository.ContentItemRepository
+import com.bagusna.catchuplater.features.library.service.SearchIndexService
 import com.bagusna.catchuplater.features.storage.ArtifactStorage
 import com.bagusna.catchuplater.features.storage.StagingArea
 import org.springframework.stereotype.Service
@@ -54,6 +55,7 @@ class CaptureService(
     private val contentItems: ContentItemRepository,
     private val artifacts: ArtifactVersionRepository,
     private val assets: ArtifactAssetRepository,
+    private val searchIndex: SearchIndexService,
     private val objectMapper: ObjectMapper,
 ) {
 
@@ -191,6 +193,10 @@ class CaptureService(
         val warningsJson = objectMapper.writeValueAsString(warnings.map { CaptureWarningDto(it.code, it.message) })
         job.markReady(contentItemId, artifactId, ArtifactType.ARTICLE_READER, validated.sourceUrl, warningsJson)
         jobs.saveAndFlush(job)
+
+        // Index after the artifact and metadata are durably stored. Indexing
+        // failure is non-fatal and leaves the artifact readable.
+        searchIndex.index(contentItemId)
 
         return job.toResponse()
     }

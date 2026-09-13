@@ -10,7 +10,6 @@ import com.bagusna.catchuplater.features.content.domain.ArtifactAsset
 import com.bagusna.catchuplater.features.content.domain.ArtifactVersion
 import com.bagusna.catchuplater.features.content.domain.ValidationStatus
 import com.bagusna.catchuplater.features.content.dto.ArtifactManifestResponse
-import com.bagusna.catchuplater.features.content.dto.ArtifactSummary
 import com.bagusna.catchuplater.features.content.dto.ManifestAssetResponse
 import com.bagusna.catchuplater.features.content.dto.ReaderMetadata
 import com.bagusna.catchuplater.features.content.dto.ReaderResponse
@@ -59,7 +58,7 @@ class ReaderService(
 
         return ReaderResponse(
             contentItem = contentItemService.summarise(item, artifact.readingTimeMinutes),
-            artifact = artifact.toSummary(),
+            artifact = artifact.toArtifactSummary(),
             metadata = ReaderMetadata(
                 author = manifest.metadata.author,
                 description = manifest.metadata.description,
@@ -83,7 +82,7 @@ class ReaderService(
         val assetBase = "${ApiRoutes.V1}/artifacts/$artifactId/assets"
 
         return ArtifactManifestResponse(
-            artifact = artifact.toSummary(),
+            artifact = artifact.toArtifactSummary(),
             manifest = manifestMap,
             assets = assetEntities.map { asset ->
                 ManifestAssetResponse(
@@ -125,17 +124,4 @@ class ReaderService(
 
     private fun readStoredText(storageKey: String): String =
         String(readStoredBytes(storageKey), Charsets.UTF_8)
-
-    private fun ArtifactVersion.toSummary(): ArtifactSummary =
-        ArtifactSummary(
-            id = requireNotNull(id),
-            artifactType = artifactType.name,
-            checksum = checksum,
-            byteSize = byteSize,
-            capturedAt = capturedAt,
-            adapterId = adapterId,
-            adapterVersion = adapterVersion,
-            packageSchemaVersion = packageSchemaVersion,
-            validationStatus = validationStatus.name,
-        )
 }
