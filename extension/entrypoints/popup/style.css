@@ -87,6 +87,14 @@ h1 {
   color: var(--cul-on-surface-variant);
 }
 
+.status.success {
+  color: #3d5a5b;
+}
+
+.status.error {
+  color: #8f2d1f;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --cul-surface: #23211e;

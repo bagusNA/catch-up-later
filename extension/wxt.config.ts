@@ -11,6 +11,6 @@ export default defineConfig({
     name: 'Catch Up Later',
     description: 'Save web articles and PDFs to your private reading library.',
     version: '0.1.0',
-    permissions: ['storage', 'activeTab', 'scripting'],
+    permissions: ['storage', 'activeTab', 'scripting', 'tabs'],
   },
 });
