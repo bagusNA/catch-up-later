@@ -17,7 +17,7 @@ class RegistrationApiTest : IntegrationTestBase() {
         val csrf = csrfContext()
 
         mockMvc.perform(
-            post("/api/auth/register")
+            post("/api/v1/auth/register")
                 .withCsrf(csrf)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
@@ -50,7 +50,7 @@ class RegistrationApiTest : IntegrationTestBase() {
         val csrf = csrfContext()
 
         mockMvc.perform(
-            post("/api/auth/register")
+            post("/api/v1/auth/register")
                 .withCsrf(csrf)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
@@ -73,7 +73,7 @@ class RegistrationApiTest : IntegrationTestBase() {
         val csrf = csrfContext()
 
         mockMvc.perform(
-            post("/api/auth/register")
+            post("/api/v1/auth/register")
                 .withCsrf(csrf)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"CASE@example.com","password":"$VALID_PASSWORD"}"""),
@@ -87,7 +87,7 @@ class RegistrationApiTest : IntegrationTestBase() {
         val csrf = csrfContext()
 
         mockMvc.perform(
-            post("/api/auth/register")
+            post("/api/v1/auth/register")
                 .withCsrf(csrf)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"not-an-email","password":"$VALID_PASSWORD"}"""),
@@ -102,7 +102,7 @@ class RegistrationApiTest : IntegrationTestBase() {
         val csrf = csrfContext()
 
         mockMvc.perform(
-            post("/api/auth/register")
+            post("/api/v1/auth/register")
                 .withCsrf(csrf)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"weak@example.com","password":"short"}"""),
@@ -114,7 +114,7 @@ class RegistrationApiTest : IntegrationTestBase() {
     @Test
     fun `rejects a state changing request without a csrf token`() {
         mockMvc.perform(
-            post("/api/auth/register")
+            post("/api/v1/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"nocsrf@example.com","password":"$VALID_PASSWORD"}"""),
         )

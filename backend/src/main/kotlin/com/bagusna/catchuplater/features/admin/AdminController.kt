@@ -1,5 +1,6 @@
 package com.bagusna.catchuplater.features.admin
 
+import com.bagusna.catchuplater.common.api.ApiRoutes
 import com.bagusna.catchuplater.features.admin.dto.AdminOverviewResponse
 import com.bagusna.catchuplater.core.security.AppUserPrincipal
 import org.springframework.security.access.prepost.PreAuthorize
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
  * admin path (ROLE_ADMIN required) and by method security.
  */
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("${ApiRoutes.V1}/admin")
 @PreAuthorize("hasRole('ADMIN')")
 class AdminController {
 

@@ -26,24 +26,35 @@ class UserRegistrationService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     /**
-     * Registers a new account. The transaction boundary covers the uniqueness
-     * check, role assignment and insert so the database unique constraint is
-     * the final authority on duplicates.
+     * Registers a new account through the public registration endpoint. The
+     * endpoint is disabled by default and only available when explicitly
+     * enabled; first-run bootstrap uses [createUser] directly.
      */
     @Transactional
     fun register(request: RegistrationRequest): User {
         if (!properties.registration.enabled) {
             throw RegistrationDisabledException()
         }
+        return createUser(request, setOf(RoleNames.USER))
+    }
 
+    /**
+     * Creates an account with the given roles. The transaction boundary covers
+     * the uniqueness check, role assignment and insert so the database unique
+     * constraint is the final authority on duplicates.
+     */
+    @Transactional
+    fun createUser(request: RegistrationRequest, roleNames: Set<String>): User {
         val email = normalizeEmail(request.email)
         if (userRepository.existsByEmailIgnoreCase(email)) {
             throw DuplicateEmailException()
         }
         enforcePasswordPolicy(request.password)
 
-        val defaultRole = roleRepository.findByName(RoleNames.USER)
-            ?: throw IllegalStateException("Required role ${RoleNames.USER} is not configured")
+        val roles = roleNames.map { name ->
+            roleRepository.findByName(name)
+                ?: throw IllegalStateException("Required role $name is not configured")
+        }
 
         val user = User(
             email = email,
@@ -51,7 +62,7 @@ class UserRegistrationService(
                 ?: throw IllegalStateException("Password encoder returned no value"),
             displayName = request.displayName?.trim()?.takeIf { it.isNotEmpty() },
         )
-        user.addRole(defaultRole)
+        roles.forEach { user.addRole(it) }
 
         return try {
             // Flush so the unique constraint is evaluated inside this

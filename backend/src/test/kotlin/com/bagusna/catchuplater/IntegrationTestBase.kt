@@ -2,6 +2,7 @@ package com.bagusna.catchuplater
 
 import com.bagusna.catchuplater.features.auth.domain.RoleNames
 import com.bagusna.catchuplater.features.auth.domain.User
+import com.bagusna.catchuplater.features.auth.repository.AuthTokenRepository
 import com.bagusna.catchuplater.features.auth.repository.RoleRepository
 import com.bagusna.catchuplater.features.auth.repository.UserRepository
 import jakarta.servlet.http.Cookie
@@ -46,6 +47,9 @@ abstract class IntegrationTestBase {
     protected lateinit var roleRepository: RoleRepository
 
     @Autowired
+    protected lateinit var authTokenRepository: AuthTokenRepository
+
+    @Autowired
     protected lateinit var passwordEncoder: PasswordEncoder
 
     protected data class CsrfContext(
@@ -55,11 +59,21 @@ abstract class IntegrationTestBase {
     )
 
     /**
+     * Removes all accounts and tokens. Used by token/setup tests that must
+     * observe committed state across request boundaries (and therefore cannot
+     * run inside a single rolled-back transaction).
+     */
+    protected fun clearAccounts() {
+        authTokenRepository.deleteAll()
+        userRepository.deleteAll()
+    }
+
+    /**
      * Bootstraps a real CSRF token through the API the way a browser client
      * would: fetch it, keep the cookie and send the token back in the header.
      */
     protected fun csrfContext(session: MockHttpSession = MockHttpSession()): CsrfContext {
-        val result = mockMvc.perform(get("/api/auth/csrf").session(session))
+        val result = mockMvc.perform(get("/api/v1/auth/csrf").session(session))
             .andExpect(status().isOk)
             .andReturn()
         val token = objectMapper.readTree(result.response.contentAsString).get("token").asText()
@@ -80,7 +94,7 @@ abstract class IntegrationTestBase {
     protected fun loginAs(email: String, password: String = VALID_PASSWORD): CsrfContext {
         val context = csrfContext()
         mockMvc.perform(
-            post("/api/auth/login")
+            post("/api/v1/auth/login")
                 .withCsrf(context)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"$email","password":"$password"}"""),

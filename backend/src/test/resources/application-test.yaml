@@ -3,3 +3,7 @@ app:
     session:
       # MockMvc does not exercise TLS, so secure cookies are disabled in tests.
       cookie-secure: false
+    registration:
+      # Public registration is disabled by default in production; the
+      # registration tests opt in explicitly.
+      enabled: true

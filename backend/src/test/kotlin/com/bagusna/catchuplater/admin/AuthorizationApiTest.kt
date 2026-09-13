@@ -16,7 +16,7 @@ class AuthorizationApiTest : IntegrationTestBase() {
         createUser("regular@example.com", roleNames = setOf(RoleNames.USER))
         val csrf = loginAs("regular@example.com")
 
-        mockMvc.perform(get("/api/admin/overview").session(csrf.session))
+        mockMvc.perform(get("/api/v1/admin/overview").session(csrf.session))
             .andExpect(status().isForbidden)
             .andExpect(jsonPath("$.error.code").value("ACCESS_DENIED"))
     }
@@ -26,14 +26,14 @@ class AuthorizationApiTest : IntegrationTestBase() {
         createUser("admin@example.com", roleNames = setOf(RoleNames.USER, RoleNames.ADMIN))
         val csrf = loginAs("admin@example.com")
 
-        mockMvc.perform(get("/api/admin/overview").session(csrf.session))
+        mockMvc.perform(get("/api/v1/admin/overview").session(csrf.session))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.adminEmail").value("admin@example.com"))
     }
 
     @Test
     fun `anonymous user is challenged for the admin endpoint`() {
-        mockMvc.perform(get("/api/admin/overview"))
+        mockMvc.perform(get("/api/v1/admin/overview"))
             .andExpect(status().isUnauthorized)
             .andExpect(jsonPath("$.error.code").value("UNAUTHENTICATED"))
     }

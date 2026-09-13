@@ -22,7 +22,7 @@ class HealthApiTest : IntegrationTestBase() {
 
     @Test
     fun `error envelope carries the request id from the response header`() {
-        val result = mockMvc.perform(get("/api/auth/me"))
+        val result = mockMvc.perform(get("/api/v1/auth/me"))
             .andExpect(status().isUnauthorized)
             .andExpect(header().exists("X-Request-ID"))
             .andExpect(jsonPath("$.error.code").value("UNAUTHENTICATED"))

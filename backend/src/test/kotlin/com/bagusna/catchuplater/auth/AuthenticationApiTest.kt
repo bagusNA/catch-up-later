@@ -19,7 +19,7 @@ class AuthenticationApiTest : IntegrationTestBase() {
         val csrf = csrfContext()
 
         mockMvc.perform(
-            post("/api/auth/login")
+            post("/api/v1/auth/login")
                 .withCsrf(csrf)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"login@example.com","password":"$VALID_PASSWORD"}"""),
@@ -31,7 +31,7 @@ class AuthenticationApiTest : IntegrationTestBase() {
             .andExpect(jsonPath("$.passwordHash").doesNotExist())
 
         // The security context persisted into the session for the next request.
-        mockMvc.perform(get("/api/auth/me").session(csrf.session))
+        mockMvc.perform(get("/api/v1/auth/me").session(csrf.session))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.email").value("login@example.com"))
     }
@@ -42,7 +42,7 @@ class AuthenticationApiTest : IntegrationTestBase() {
         val csrf = csrfContext()
 
         mockMvc.perform(
-            post("/api/auth/login")
+            post("/api/v1/auth/login")
                 .withCsrf(csrf)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"bad-password@example.com","password":"definitely-not-the-password"}"""),
@@ -57,7 +57,7 @@ class AuthenticationApiTest : IntegrationTestBase() {
         val csrf = csrfContext()
 
         mockMvc.perform(
-            post("/api/auth/login")
+            post("/api/v1/auth/login")
                 .withCsrf(csrf)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"nobody@example.com","password":"$VALID_PASSWORD"}"""),
@@ -69,7 +69,7 @@ class AuthenticationApiTest : IntegrationTestBase() {
 
     @Test
     fun `protected endpoint requires authentication`() {
-        mockMvc.perform(get("/api/auth/me"))
+        mockMvc.perform(get("/api/v1/auth/me"))
             .andExpect(status().isUnauthorized)
             .andExpect(jsonPath("$.error.code").value("UNAUTHENTICATED"))
     }
@@ -79,7 +79,7 @@ class AuthenticationApiTest : IntegrationTestBase() {
         val csrf = csrfContext()
 
         mockMvc.perform(
-            post("/api/auth/login")
+            post("/api/v1/auth/login")
                 .withCsrf(csrf)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"email":"not-an-email","password":""}"""),
@@ -95,7 +95,7 @@ class AuthenticationApiTest : IntegrationTestBase() {
 
         // Send only the CSRF cookie/token, not a pre-existing HTTP session.
         val result = mockMvc.perform(
-            post("/api/auth/login")
+            post("/api/v1/auth/login")
                 .cookie(csrf.cookie)
                 .header("X-XSRF-TOKEN", csrf.token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -112,13 +112,13 @@ class AuthenticationApiTest : IntegrationTestBase() {
         createUser("logout@example.com")
         val csrf = loginAs("logout@example.com")
 
-        mockMvc.perform(get("/api/auth/me").session(csrf.session))
+        mockMvc.perform(get("/api/v1/auth/me").session(csrf.session))
             .andExpect(status().isOk)
 
-        mockMvc.perform(post("/api/auth/logout").withCsrf(csrf))
+        mockMvc.perform(post("/api/v1/auth/logout").withCsrf(csrf))
             .andExpect(status().isNoContent)
 
-        mockMvc.perform(get("/api/auth/me").session(csrf.session))
+        mockMvc.perform(get("/api/v1/auth/me").session(csrf.session))
             .andExpect(status().isUnauthorized)
     }
 }
