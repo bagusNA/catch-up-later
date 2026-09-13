@@ -133,6 +133,12 @@ abstract class IntegrationTestBase {
             Files.createDirectories(directory)
             val database = Files.createTempFile(directory, "catch-up-later-test-", ".db")
             registry.add("spring.datasource.url") { "jdbc:sqlite:${database.toAbsolutePath()}" }
+
+            // Each test context gets isolated artifact storage so a fresh
+            // database cannot collide with files left by a previous run.
+            val storage = Files.createTempDirectory(directory, "catch-up-later-storage-")
+            registry.add("app.storage.artifacts-dir") { storage.resolve("artifacts").toString() }
+            registry.add("app.storage.staging-dir") { storage.resolve("staging").toString() }
         }
     }
 }

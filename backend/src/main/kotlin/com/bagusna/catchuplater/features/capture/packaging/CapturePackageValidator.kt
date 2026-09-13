@@ -153,7 +153,7 @@ class CapturePackageValidator(
                 ValidatedAsset(
                     assetKey = key,
                     mimeType = mimeType,
-                    originalUrl = reference.originalUrl?.let { normalizeUrl(it) },
+                    originalUrl = normalizeInformationalUrl(reference.originalUrl),
                     altText = normalizeText(reference.altText, MAX_ALT_LENGTH),
                     byteSize = staged.byteSize,
                     checksum = staged.checksum,
@@ -200,6 +200,16 @@ class CapturePackageValidator(
             throw InvalidCapturePackageException("A URL in the package is not valid.")
         }
         return trimmed
+    }
+
+    /**
+     * Asset `originalUrl` is informational only (it is never fetched), so it is
+     * kept verbatim apart from trimming and truncation. This tolerates
+     * `data:` URLs without opening an SSRF surface.
+     */
+    private fun normalizeInformationalUrl(value: String?): String? {
+        val trimmed = value?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        return trimmed.take(properties.maxUrlLength)
     }
 
     private fun normalizeText(value: String?, maxLength: Int): String? {

@@ -169,6 +169,29 @@ class CaptureApiTest : IntegrationTestBase() {
         ).andExpect(status().isNotFound)
     }
 
+    @Test
+    fun `accepts a package produced by the extension adapter`() {
+        val token = accessToken("fixture@example.com")
+        val packageBytes = javaClass.getResourceAsStream("/fixtures/generic-article-v1.zip")!!.readBytes()
+
+        val created = mockMvc.perform(
+            multipart("/api/v1/captures")
+                .file(MockMultipartFile("package", "generic-article-v1.zip", "application/zip", packageBytes))
+                .header("Authorization", "Bearer $token")
+                .header("Idempotency-Key", "idem-fixture-0001"),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.status").value("READY"))
+            .andReturn()
+
+        val contentItemId = objectMapper.readTree(created.response.contentAsString).get("contentItemId").asInt()
+        mockMvc.perform(
+            get("/api/v1/content-items/$contentItemId/reader").header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.contentItem.title").value("Contract article"))
+    }
+
     private fun accessToken(email: String): String {
         createUser(email)
         val result = mockMvc.perform(
