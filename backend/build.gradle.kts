@@ -31,6 +31,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.1.1")
     implementation("tools.jackson.module:jackson-module-kotlin")
+    // Backend-side HTML re-sanitization. The extension sanitizes before upload
+    // as defense in depth, but the backend never trusts that output.
+    implementation("com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.xerial:sqlite-jdbc")
