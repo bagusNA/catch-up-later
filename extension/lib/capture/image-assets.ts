@@ -12,10 +12,10 @@ export interface FetchAssetsResult {
  * Downloads the referenced article images in the extension's background
  * service worker.
  *
- * Unlike the page context, the worker can fetch cross-origin URLs when the
- * user has granted the optional host permission, so CDN-hosted images are
- * captured too. Missing or invalid images are non-fatal: they are omitted and
- * reported as warnings, and the backend strips the dangling references.
+ * Unlike the page context, the worker can fetch cross-origin URLs because the
+ * extension declares the `<all_urls>` host permission, so CDN-hosted images
+ * are captured too. Missing or invalid images are non-fatal: they are omitted
+ * and reported as warnings, and the backend strips the dangling references.
  */
 export async function fetchImageAssets(references: ImageReference[]): Promise<FetchAssetsResult> {
   const assets: CapturedAsset[] = []

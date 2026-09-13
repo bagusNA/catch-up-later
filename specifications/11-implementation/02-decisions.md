@@ -238,12 +238,10 @@ without them.
 package-local asset keys, and rewrites image `src` values; it never downloads
 bytes. The background service worker downloads the referenced images (sending
 cookies where needed) and builds the ZIP archive. The extension declares
-`<all_urls>` as an **optional** host permission and requests it from the popup
-on the first save, which is a user gesture.
+`<all_urls>` as a **host permission**, granted at install time.
 
-**Consequences:** Cross-origin images are captured when the user grants the
-permission. If it is declined, same-origin images still work and the rest
-degrade to `ASSET_MISSING` warnings, so capture never fails because of a
-permission choice. The extension does not hold broad host permissions at rest,
-and `fflate` plus the package builder move from the page bundle to the service
-worker.
+**Consequences:** Cross-origin images are captured without a per-save prompt.
+The extension does not browse or read pages at rest — capture is still only
+triggered by an explicit user action — but the manifest does ask for broad host
+access up front. `fflate` plus the package builder move from the page bundle to
+the service worker.

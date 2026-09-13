@@ -25,14 +25,7 @@ async function save() {
   saving.value = true;
   error.value = null;
   capture.value = null;
-  // Requesting optional host permissions must happen during the click's user
-  // gesture, so it is started before any await. It resolves true immediately
-  // when access was already granted.
-  const permission = browser.permissions
-    .request({ origins: ['<all_urls>'] })
-    .catch(() => false);
   try {
-    await permission;
     const result = (await browser.runtime.sendMessage({ type: 'capture:save' })) as MessageResult;
     if (!result.ok) {
       error.value = result.error;

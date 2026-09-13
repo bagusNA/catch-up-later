@@ -106,11 +106,9 @@ pnpm compile      # type-check
 pnpm test         # adapter and packaging fixture tests
 ```
 
-The extension only captures on explicit user action. It requests `activeTab`,
-`scripting`, and `tabs` rather than broad host permissions at rest. On the
-first save it asks for the optional `<all_urls>` host permission so the
-background worker can download cross-origin article images; if you decline,
-same-origin images still work and the rest become warnings. Open the
+The extension only captures on explicit user action. It declares `activeTab`,
+`scripting`, `tabs`, and the `<all_urls>` host permission (granted at install)
+so the background worker can download cross-origin article images. Open the
 extension's options page, enter the backend URL and your account credentials,
 and connect. Tokens are stored with `browser.storage.local` and refreshed by the
 background worker; the popup never talks to the backend directly. On a supported
