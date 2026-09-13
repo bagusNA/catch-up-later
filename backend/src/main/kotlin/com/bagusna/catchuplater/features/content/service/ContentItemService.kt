@@ -27,9 +27,13 @@ class ContentItemService(
             ownerId,
             PageRequest.of(safePage, safeSize),
         )
-        val readingTimes = artifacts
-            .findByContentItemIdInAndIsCurrentTrue(result.content.mapNotNull { it.id })
-            .associate { it.contentItemId to it.readingTimeMinutes }
+        val itemIds = result.content.mapNotNull { it.id }
+        val readingTimes = if (itemIds.isEmpty()) {
+            emptyMap()
+        } else {
+            artifacts.findByContentItemIdInAndIsCurrentTrue(itemIds)
+                .associate { it.contentItemId to it.readingTimeMinutes }
+        }
 
         return ContentItemListResponse(
             items = result.content.map { summarise(it, readingTimes[it.id]) },

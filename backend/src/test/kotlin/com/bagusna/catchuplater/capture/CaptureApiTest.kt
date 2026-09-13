@@ -192,6 +192,16 @@ class CaptureApiTest : IntegrationTestBase() {
             .andExpect(jsonPath("$.contentItem.title").value("Contract article"))
     }
 
+    @Test
+    fun `lists an empty library without error`() {
+        val token = accessToken("empty@example.com")
+        mockMvc.perform(get("/api/v1/content-items").header("Authorization", "Bearer $token"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.items").isArray)
+            .andExpect(jsonPath("$.items").isEmpty)
+            .andExpect(jsonPath("$.total").value(0))
+    }
+
     private fun accessToken(email: String): String {
         createUser(email)
         val result = mockMvc.perform(
