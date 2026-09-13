@@ -69,6 +69,35 @@ describe('GenericReadabilityAdapter', () => {
     expect(result.artifact.html).toContain(`${RESERVED_ASSET_PREFIX}asset-1`)
   })
 
+  it('keeps images wrapped in negative-class containers such as share/media wrappers', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      arrayBuffer: async () => PNG.buffer.slice(0),
+    })))
+
+    const paragraph = 'This is a sufficiently long sentence about reading and capturing content. '.repeat(6)
+    const wrapped = `<article>
+      <h1>Sample article</h1>
+      <p>${paragraph}</p>
+      <figure class="image component image-big">
+        <div class="image-sharesheet">
+          <div class="image-wrapper">
+            <img class="picture-image" src="/hero.png" alt="Hero">
+          </div>
+        </div>
+      </figure>
+    </article>`
+
+    const adapter = new GenericReadabilityAdapter()
+    const result = await adapter.capture({
+      document: buildDocument(wrapped),
+      url: 'https://example.com/a',
+    })
+
+    expect(result.assets).toHaveLength(1)
+    expect(result.artifact.html).toContain(`${RESERVED_ASSET_PREFIX}asset-1`)
+  })
+
   it('still succeeds with a warning when assets cannot be captured', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false })))
 

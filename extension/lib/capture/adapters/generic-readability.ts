@@ -39,6 +39,7 @@ export class GenericReadabilityAdapter implements SourceAdapter {
     }
 
     const clone = document.cloneNode(true) as Document
+    neutralizeMediaWrapperClasses(clone)
     let parsed: ReturnType<Readability['parse']>
     try {
       parsed = new Readability(clone, { charThreshold: 100 }).parse()
@@ -101,6 +102,40 @@ export class GenericReadabilityAdapter implements SourceAdapter {
       error: { code, message, retryable: false },
     }
   }
+}
+
+/**
+ * Readability scores elements by class/id and deletes anything matching its
+ * "negative" pattern. Sites commonly wrap legitimate article media in
+ * wrappers whose class contains words like `share`, `media`, or `promo` (e.g.
+ * Apple's `image-sharesheet`), which removes the image along with the wrapper.
+ *
+ * Before extraction we strip only those negative class tokens and ids from the
+ * ancestors of media elements, so the image survives while Readability's
+ * cleanup of unrelated junk is preserved.
+ */
+const NEGATIVE_CLASS_PATTERN =
+  /-ad-|hidden|^hid$| hid$| hid |^hid |banner|combx|comment|com-|contact|footer|gdpr|masthead|media|meta|outbrain|promo|related|scroll|share|shoutbox|sidebar|skyscraper|sponsor|shopping|tags|widget/i
+
+function neutralizeMediaWrapperClasses(root: Document): void {
+  const media = root.querySelectorAll('img, picture, figure, video, object, iframe')
+  media.forEach((element) => {
+    let current: Element | null = element
+    while (current && current.tagName !== 'BODY' && current.tagName !== 'HTML') {
+      const className = current.getAttribute('class')
+      if (className && NEGATIVE_CLASS_PATTERN.test(className)) {
+        current.setAttribute(
+          'class',
+          className.split(/\s+/).filter(token => token && !NEGATIVE_CLASS_PATTERN.test(token)).join(' '),
+        )
+      }
+      const id = current.getAttribute('id')
+      if (id && NEGATIVE_CLASS_PATTERN.test(id)) {
+        current.removeAttribute('id')
+      }
+      current = current.parentElement
+    }
+  })
 }
 
 function canonicalLink(document: Document): string | null {
