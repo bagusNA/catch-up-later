@@ -1,0 +1,170 @@
+# Decision Log
+
+Resolved ambiguities from the baseline specification. These decisions are
+normative for the implementation phase and supersede the baseline where they
+conflict.
+
+## DEC-001 — Remove Inbox; processing lives in Library
+
+**Context:** The baseline lists an Inbox route and primary nav item but never
+defines its behavior.
+
+**Decision:** Remove Inbox entirely. Items that are `PROCESSING` or `FAILED`
+appear inline at the top of the Library with status affordances (progress,
+retry, cancel, error). There is no separate inbox.
+
+**Consequences:** Remove `/inbox` from `05-frontend/01-frontend-architecture.md`
+and Inbox from the primary navigation in `05-frontend/03-ui-guidelines.md`.
+Delete the demo `frontend/app/pages/inbox.vue`.
+
+## DEC-002 — Versioned API and error envelope
+
+**Context:** The existing backend uses `/api/auth/...` and the error shape
+`{ timestamp, status, code, message, path, fieldErrors }`. The spec defines
+`/api/v1/...` and `{ error: { code, message, details, requestId } }`.
+
+**Decision:** Adopt the spec. All endpoints move under `/api/v1`. All errors use
+the spec envelope. Existing auth endpoints are migrated in `S1`; clients are
+updated in the same slice.
+
+**Consequences:** Update backend controllers, security handlers, and the
+frontend/extension API clients. Error codes are stable public identifiers.
+
+## DEC-003 — Bearer tokens for the extension
+
+**Context:** The backend authenticates the web UI with session cookies + CSRF.
+Cross-origin cookie handling from a browser extension is fragile.
+
+**Decision:** The extension authenticates with short-lived **access tokens** and
+a **refresh token**, issued by `/api/v1/auth/token` and
+`/api/v1/auth/token/refresh`, revoked on logout. The web UI keeps session
+cookie + CSRF authentication. Tokens are stored with extension-secure storage
+and are never injected into page content.
+
+**Consequences:** Backend gains a token issuance/rotation path; both auth
+mechanisms must resolve to the same user and ownership model.
+
+## DEC-004 — ZIP capture package over multipart upload
+
+**Context:** The package contract allows multipart, ZIP, or JSON + binary parts.
+
+**Decision:** The capture package is a **ZIP archive** containing
+`manifest.json` plus content and assets, streamed as a single multipart upload.
+Assets are referenced by package-local keys, never filesystem paths.
+
+**Consequences:** Backend validates the archive bounds and streams entries to
+staging. Large PDFs are handled without loading the whole archive into memory.
+
+## DEC-005 — First-run bootstrap instead of open registration
+
+**Context:** The app is private and self-hosted, but the existing backend leaves
+self-registration enabled.
+
+**Decision:** Open registration is disabled by default. The first account is
+created through a first-run setup flow (only available while no user exists).
+Subsequent users require an admin action or a disabled-by-default invite. The
+MVP primary experience remains single-user.
+
+**Consequences:** Add a setup/bootstrap endpoint and UI; ownership stays on all
+records for future multi-user.
+
+## DEC-006 — Two distinct status fields
+
+**Context:** `ContentItem.status` and `ReadingState.status` both exist.
+
+**Decision:** `ContentItem.status` is the **capture/processing** status
+(`QUEUED`, `UPLOADING`, `PROCESSING`, `READY`, `FAILED`, `CANCELLED`).
+`ReadingState.status` is the **reading** status (`UNREAD`, `IN_PROGRESS`,
+`READ`). They are never conflated.
+
+**Consequences:** The Library filters on reading status; processing status is a
+separate visual affordance.
+
+## DEC-007 — PDF text extraction in the MVP
+
+**Context:** The spec requires full-text search "over extracted PDF text where
+available" but does not say where extraction happens.
+
+**Decision:** Extract text server-side with a maintained JVM library (Apache
+PDFBox) after PDF validation. Extraction failure is non-fatal: the PDF remains
+readable and the capture reports a warning. Search covers extracted text when
+present.
+
+**Consequences:** PDF text extraction is part of `S7`; the capture status
+exposes `pdfTextExtracted`.
+
+## DEC-008 — Defer design-doc features beyond MVP scope
+
+**Context:** `05-frontend/03-ui-guidelines.md` and `04-design-system.md` mention
+home statistics, random "might be interested" content, section/quote bookmarks,
+highlights, notes, and a share action. None are in the MVP scope; share is an
+explicit non-goal.
+
+**Decision:** Defer all of the above to the deferred backlog. The MVP ships
+Library, Favorites, Tags, Settings, article reader, and PDF reader only.
+
+**Consequences:** No highlight/annotation data model in the MVP. The reader
+selection tooltip is not implemented.
+
+## DEC-009 — Frontend starts from the Nuxt UI dashboard shell
+
+**Context:** `frontend/` is an unmodified Nuxt UI Dashboard template.
+
+**Decision:** Keep the application shell (layout, sidebar, theme switch,
+command palette) but delete the demo pages, components, and mock server routes.
+Replace the `green/zinc` theme with the **Editorial Reading Room** tokens.
+
+**Consequences:** `S0` strips the template and installs design tokens; `S1`
+builds the real navigation.
+
+## DEC-010 — Normalized design tokens
+
+**Context:** The design system front-matter and prose disagree on the primary
+color (`#882c18` / `#a13e29` vs `#A8432D`).
+
+**Decision:** Canonical tokens for implementation:
+
+| Token | Value |
+|-------|-------|
+| `primary` | `#A8432D` |
+| `primary-hover` | `#8F2D1F` |
+| `secondary` | `#4A6B6C` |
+| `tertiary` | `#C47D38` |
+| `surface` | `#F9F7F2` |
+| `surface-container` | `#F0EDE4` |
+| `outline` | `#E3DFD5` |
+| `on-surface` | `#23211E` |
+| `on-surface-variant` | `#57534E` |
+| `error` | `#8F2D1F` |
+
+Typography: **Newsreader** for prose, **Hanken Grotesk** for UI,
+**JetBrains Mono** for metadata.
+
+**Consequences:** Tokens live in one frontend file and are the only source for
+component styling.
+
+## DEC-011 — Vertical slices tracked by milestone
+
+**Context:** Progress must be easy to see in GitHub.
+
+**Decision:** One milestone per slice, one issue per task. Task IDs match the
+slice documents. Labels use `area:*`, `type:*`, `priority:*`.
+
+**Consequences:** Milestone completion percentage is the progress signal; no
+GitHub Project board is required (the token lacks `project` scope).
+
+## DEC-012 — Trunk-based development with per-task PRs
+
+**Decision:** Work lands on `main` via short-lived, squashed PRs. CI runs on
+every PR and push. See `01-delivery-plan.md`.
+
+## DEC-013 — Technical defaults
+
+| Concern | Choice |
+|---------|--------|
+| HTML sanitization (backend) | OWASP Java HTML Sanitizer (pinned policy), re-run independently of the extension |
+| HTML sanitization (extension) | DOMPurify before packaging (defense in depth only) |
+| PDF parsing/rendering (backend) | Apache PDFBox |
+| Artifact storage | Filesystem behind an `ArtifactStorage` interface |
+| Full-text search | SQLite FTS5 |
+| API docs | springdoc-openapi under `/api/v1` |

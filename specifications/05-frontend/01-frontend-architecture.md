@@ -13,7 +13,6 @@
 
 - `/login`
 - `/library`
-- `/inbox`
 - `/content/[id]`
 - `/content/[id]/read`
 - `/settings`

@@ -8,6 +8,10 @@ Catch Up Later is a self-hosted, private content library for curious people. Use
 
 This specification describes the MVP and the architectural seams required for future source adapters and content types.
 
+See `11-implementation/` for the delivery plan (vertical slices, decisions, and
+GitHub tracking). Where the implementation layer and this baseline conflict, the
+implementation layer wins.
+
 ## MVP decisions
 
 - Self-hosted deployment.
@@ -45,6 +49,7 @@ This specification describes the MVP and the architectural seams required for fu
 16. `08-operations/01-deployment-backup-and-observability.md`
 17. `09-quality/01-testing-strategy.md`
 18. `10-roadmap/01-future-extensibility.md`
+19. `11-implementation/README.md`
 
 ## Normative language
 

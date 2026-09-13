@@ -65,10 +65,11 @@ Never present a partial or failed capture as fully successful.
 
 Primary navigation:
 - Library
-- Inbox
 - Favorites
 - Tags
 - Settings
+
+Processing and failed items are shown inline in the Library; there is no separate inbox.
 
 Library organization:
 - Reading status: Unread, In Progress, Read.
